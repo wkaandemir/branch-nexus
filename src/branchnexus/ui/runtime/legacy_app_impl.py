@@ -36,11 +36,11 @@ from branchnexus.git.remote_workspace import (
     resolve_wsl_home_directory,
 )
 from branchnexus.orchestrator import OrchestrationRequest
-from branchnexus.tmux.bootstrap import ensure_tmux
 from branchnexus.presets import resolve_terminal_template
 from branchnexus.runtime.wsl_discovery import build_wsl_command, list_distributions, to_wsl_path
 from branchnexus.session import build_runtime_snapshot, parse_runtime_snapshot
 from branchnexus.terminal import RuntimeKind, TerminalService
+from branchnexus.tmux.bootstrap import ensure_tmux
 from branchnexus.ui.screens.runtime_dashboard import RuntimeDashboardScreen
 from branchnexus.ui.services.git_operations import (
     _clone_remote_repo_with_fallback,
