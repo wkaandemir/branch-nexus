@@ -19,6 +19,7 @@ from branchnexus.ui.runtime.constants import (
     HOST_GIT_CLONE_TIMEOUT_SECONDS,
     WSL_GH_CLONE_TIMEOUT_SECONDS,
 )
+from branchnexus.ui.services.github_env import env_without_github_token, github_token_env
 from branchnexus.ui.services.security import command_for_log, truncate_log
 from branchnexus.ui.services.wsl_runner import (
     background_subprocess_kwargs,
@@ -235,9 +236,7 @@ def clone_via_wsl_gh(
         message=f"token_present={'yes' if bool(token) else 'no'} token_len={len(token)}",
     )
     clone_env = dict(env or {})
-    clone_env["BRANCHNEXUS_GH_TOKEN"] = token
-    clone_env["GH_TOKEN"] = token
-    clone_env["GITHUB_TOKEN"] = token
+    clone_env.update(github_token_env(token))
     clone_step = f"repo-clone:{repo_key}:gh"
     quoted_repo = shlex.quote(repo_full_name)
     quoted_anchor = shlex.quote(anchor_path)
@@ -402,10 +401,7 @@ def clone_via_wsl_gh(
                 env=clone_env,
                 verbose_sink=verbose_sink,
             )
-        no_auth_env = dict(clone_env)
-        no_auth_env.pop("BRANCHNEXUS_GH_TOKEN", None)
-        no_auth_env.pop("GH_TOKEN", None)
-        no_auth_env.pop("GITHUB_TOKEN", None)
+        no_auth_env = env_without_github_token(clone_env)
         try:
             run_wsl_git_command(
                 distribution=distribution,
