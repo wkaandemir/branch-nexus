@@ -29,13 +29,13 @@ def test_build_git_env_appends_existing_git_config_entries() -> None:
 def test_sanitize_terminal_log_text_masks_secrets() -> None:
     value = (
         "Authorization: Bearer ghp_123456 https://user:pass@github.com/org/repo.git "
-        "token=gho_ABCDEF123"
+        "legacy=gho_TESTTOKEN"
     )
     sanitized = security.sanitize_terminal_log_text(value)
     assert "Bearer ***" in sanitized
     assert "https://***:***@github.com/org/repo.git" in sanitized
     assert "ghp_123456" not in sanitized
-    assert "gho_ABCDEF123" not in sanitized
+    assert "gho_TESTTOKEN" not in sanitized
 
 
 def test_command_for_log_truncates_safely() -> None:
