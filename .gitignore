@@ -1,0 +1,56 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.py,cover
+
+# Virtual environments
+.venv/
+.venv-linux/
+venv/
+env/
+
+# Tool caches
+.pytest_cache/
+.ruff_cache/
+.hypothesis/
+.mypy_cache/
+.tox/
+
+# Packaging/build outputs
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+build/
+dist/
+
+# Coverage reports
+.coverage
+.coverage.*
+htmlcov/
+
+# Local scratch files
+/create-post/
+bulgular.txt
+
+# Local secrets / credentials
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Local runtime artifacts
+*.db
+*.sqlite
+*.log
+artifacts/
+docs/images/runtime-dashboard.png
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

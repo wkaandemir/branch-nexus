@@ -1,0 +1,1 @@
+"""Git domain helpers."""
