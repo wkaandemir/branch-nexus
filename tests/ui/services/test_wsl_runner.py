@@ -50,6 +50,31 @@ def test_run_with_heartbeat_emits_wait(monkeypatch) -> None:
     assert any("[WAIT]" in line and "heartbeat-test" in line for line in emitted)
 
 
+def test_run_with_heartbeat_applies_background_kwargs(monkeypatch) -> None:
+    seen: dict[str, object] = {}
+
+    monkeypatch.setattr(
+        wsl_runner,
+        "background_subprocess_kwargs",
+        lambda: {"creationflags": 123456},
+    )
+
+    def fake_run(*args: object, **kwargs: object) -> subprocess.CompletedProcess[str]:
+        seen.update(kwargs)
+        return _cp(0, stdout="ok")
+
+    monkeypatch.setattr(wsl_runner.subprocess, "run", fake_run)
+    result = wsl_runner.run_with_heartbeat(
+        command=["wsl.exe", "-d", "Ubuntu", "--", "bash", "-lc", "echo ok"],
+        env={"A": "B"},
+        timeout_seconds=10,
+        step="kw-test",
+    )
+
+    assert result.returncode == 0
+    assert seen["creationflags"] == 123456
+
+
 def test_run_wsl_script_success_uses_bash_lc(monkeypatch) -> None:
     seen: dict[str, object] = {}
 

@@ -69,6 +69,9 @@ from branchnexus.ui.services.windows_terminal import (
     _apply_windows_terminal_profile_font_size,
 )
 from branchnexus.ui.services.wsl_runner import (
+    background_subprocess_kwargs as _background_subprocess_kwargs,
+)
+from branchnexus.ui.services.wsl_runner import (
     run_with_heartbeat as _run_subprocess_with_heartbeat,
 )
 from branchnexus.ui.services.wsl_runner import (
@@ -99,13 +102,16 @@ _GITHUB_HTTPS_REPO_PATTERN = re.compile(
     r"^https?://github\.com/([^/\s]+)/([^/\s]+?)(?:\.git)?/?$",
     re.IGNORECASE,
 )
-_GITHUB_SSH_REPO_PATTERN = re.compile(r"^git@github\.com:([^/\s]+)/([^/\s]+?)(?:\.git)?$", re.IGNORECASE)
+_GITHUB_SSH_REPO_PATTERN = re.compile(
+    r"^git@github\.com:([^/\s]+)/([^/\s]+?)(?:\.git)?$", re.IGNORECASE
+)
 
 
 @dataclass
 class Toast:
     level: str
     message: str
+
 
 class WizardRouter:
     def __init__(self) -> None:
@@ -133,7 +139,9 @@ class WizardRouter:
 
 
 class AppShell:
-    def __init__(self, state: AppState | None = None, *, route_steps: list[str] | None = None) -> None:
+    def __init__(
+        self, state: AppState | None = None, *, route_steps: list[str] | None = None
+    ) -> None:
         self.state = state or AppState()
         self.router = WizardRouter()
         self.router.configure(route_steps or ["runtime"])
@@ -170,7 +178,9 @@ class WizardSelections(BaseModel):
     assignments: dict[int, tuple[str, str]]
     github_token: str = ""
 
-    @field_validator("root_path", "repo_url", "repo_path_wsl", "layout", "cleanup", "wsl_distribution")
+    @field_validator(
+        "root_path", "repo_url", "repo_path_wsl", "layout", "cleanup", "wsl_distribution"
+    )
     @classmethod
     def _normalize_str_fields(cls, value: str) -> str:
         return value.strip()
@@ -185,7 +195,9 @@ class WizardSelections(BaseModel):
 
 
 def build_state_from_config(config: AppConfig) -> AppState:
-    template_count = resolve_terminal_template(config.default_panes, custom_value=config.default_panes)
+    template_count = resolve_terminal_template(
+        config.default_panes, custom_value=config.default_panes
+    )
     return AppState(
         root_path=config.default_root,
         remote_repo_url=config.remote_repo_url,
@@ -266,7 +278,9 @@ def build_orchestration_request(
         selections.panes,
         selections.layout,
     )
-    convert = path_converter or (lambda distro, host_path: to_wsl_path(distro, host_path, runner=runner))
+    convert = path_converter or (
+        lambda distro, host_path: to_wsl_path(distro, host_path, runner=runner)
+    )
     resolve_home = home_resolver or resolve_wsl_home_directory
     sync_repo = repo_sync or ensure_remote_repo_synced
     load_branches = branch_loader or list_remote_branches_in_repo
@@ -369,10 +383,6 @@ def _dedupe(values: list[str]) -> list[str]:
     return result
 
 
-
-
-
-
 def _format_terminal_progress_line(level: str, step: str, message: str) -> str:
     stamp = datetime.now().strftime("%H:%M:%S")
     step_name = step.strip() or "runtime"
@@ -393,9 +403,7 @@ def _emit_terminal_progress(
 
 
 def _build_runtime_progress_log_path(workspace_root_wsl: str) -> str:
-    root = (
-        workspace_root_wsl.replace("\ufeff", "").replace("\x00", "").strip().rstrip("/")
-    )
+    root = workspace_root_wsl.replace("\ufeff", "").replace("\x00", "").strip().rstrip("/")
     if not root.startswith("/"):
         return ""
     return f"{root}/.bnx/runtime/open-progress.log"
@@ -413,7 +421,7 @@ def _init_wsl_progress_log(
     parent = str(PurePosixPath(path).parent)
     command = build_wsl_command(
         distribution,
-        ["bash", "-lc", f'mkdir -p {shlex.quote(parent)}; : > {shlex.quote(path)}'],
+        ["bash", "-lc", f"mkdir -p {shlex.quote(parent)}; : > {shlex.quote(path)}"],
     )
     run_env = dict(os.environ)
     if env:
@@ -426,6 +434,7 @@ def _init_wsl_progress_log(
             check=False,
             env=run_env,
             timeout=_WSL_PROGRESS_LOG_IO_TIMEOUT_SECONDS,
+            **_background_subprocess_kwargs(),
         )
     except (OSError, subprocess.TimeoutExpired):
         logger.debug("runtime-open progress-log-init failed path=%s", path, exc_info=True)
@@ -451,8 +460,8 @@ def _append_wsl_progress_log(
             "bash",
             "-lc",
             (
-                f'mkdir -p {shlex.quote(parent)}; '
-                f'touch {shlex.quote(path)}; '
+                f"mkdir -p {shlex.quote(parent)}; "
+                f"touch {shlex.quote(path)}; "
                 f'printf "%s\\n" {shlex.quote(text)} >> {shlex.quote(path)}'
             ),
         ],
@@ -468,11 +477,10 @@ def _append_wsl_progress_log(
             check=False,
             env=run_env,
             timeout=_WSL_PROGRESS_LOG_IO_TIMEOUT_SECONDS,
+            **_background_subprocess_kwargs(),
         )
     except (OSError, subprocess.TimeoutExpired):
         logger.debug("runtime-open progress-log-append failed path=%s", path, exc_info=True)
-
-
 
 
 def _sanitize_repo_segment(value: str) -> str:
@@ -532,8 +540,6 @@ def _shorten_segment(value: str, *, max_length: int) -> str:
     if not head:
         head = value[:head_length]
     return f"{head}-{digest}"
-
-
 
 
 def _run_wsl_script(
@@ -607,14 +613,6 @@ def _run_wsl_script(
     )
 
 
-
-
-
-
-
-
-
-
 def prepare_wsl_runtime_pane_paths(
     *,
     distribution: str,
@@ -685,9 +683,7 @@ def prepare_wsl_runtime_pane_paths(
             anchor_path = f"{repos_root}/{repo_key}"
             check = _run_wsl_probe_script(
                 distribution=distribution,
-                script=(
-                    f'git -C "{anchor_path}" rev-parse --is-inside-work-tree >/dev/null 2>&1'
-                ),
+                script=(f'git -C "{anchor_path}" rev-parse --is-inside-work-tree >/dev/null 2>&1'),
                 step=f"repo-presence:{repo_key}",
                 env=run_env,
                 verbose_sink=verbose_sink,
@@ -786,9 +782,7 @@ def prepare_wsl_runtime_pane_paths(
 
             _run_wsl_script(
                 distribution=distribution,
-                script=(
-                    f'git -C "{anchor_path}" rev-parse --is-inside-work-tree >/dev/null 2>&1'
-                ),
+                script=(f'git -C "{anchor_path}" rev-parse --is-inside-work-tree >/dev/null 2>&1'),
                 step=f"repo-verify:{repo_key}",
                 env=run_env,
                 verbose_sink=verbose_sink,
@@ -938,7 +932,9 @@ def prepare_wsl_runtime_pane_paths(
         branch_key = _sanitize_branch_segment(local_branch)
         pane_path = f"{worktrees_root}/{repo_key}/p{pane_index + 1}-{branch_key}"
         existing_path = branch_map.get(local_branch, "").strip()
-        if existing_path and _is_legacy_runtime_worktree_path(existing_path, workspace_root=workspace_root):
+        if existing_path and _is_legacy_runtime_worktree_path(
+            existing_path, workspace_root=workspace_root
+        ):
             logger.info(
                 "runtime-open worktree-migrate pane=%s branch=%s old_path=%s",
                 pane_index + 1,
@@ -1044,11 +1040,9 @@ def _build_wsl_pane_context_command(
                 f'else git -C "{target}" fetch --prune --tags; fi'
             )
             commands.append(
-                
-                    f'if [ -d "{target}/.git" ]; then '
-                    f"{fetch_cmd}; "
-                    f'else rm -rf "{target}" ; {clone_cmd}; fi'
-                
+                f'if [ -d "{target}/.git" ]; then '
+                f"{fetch_cmd}; "
+                f'else rm -rf "{target}" ; {clone_cmd}; fi'
             )
             commands.append(f'cd "{target}"')
         else:
@@ -1059,17 +1053,17 @@ def _build_wsl_pane_context_command(
         local_branch = branch_value[7:] if branch_value.startswith("origin/") else branch_value
         local_branch = local_branch.strip()
         if local_branch:
-            remote_branch = branch_value if branch_value.startswith("origin/") else f"origin/{local_branch}"
+            remote_branch = (
+                branch_value if branch_value.startswith("origin/") else f"origin/{local_branch}"
+            )
             local_q = shlex.quote(local_branch)
             remote_q = shlex.quote(remote_branch)
             commands.append(
-                
-                    "(git rev-parse --is-inside-work-tree >/dev/null 2>&1 && "
-                    f"(git switch {local_q} 2>/dev/null || "
-                    f"git checkout {local_q} 2>/dev/null || "
-                    f"git switch -c {local_q} --track {remote_q} 2>/dev/null || "
-                    f"git checkout -B {local_q} {remote_q} 2>/dev/null || true))"
-                
+                "(git rev-parse --is-inside-work-tree >/dev/null 2>&1 && "
+                f"(git switch {local_q} 2>/dev/null || "
+                f"git checkout {local_q} 2>/dev/null || "
+                f"git switch -c {local_q} --track {remote_q} 2>/dev/null || "
+                f"git checkout -B {local_q} {remote_q} 2>/dev/null || true))"
             )
 
     if not commands:
@@ -1181,7 +1175,9 @@ def build_runtime_wsl_bootstrap_command(
     session_name: str = "branchnexus-runtime",
 ) -> str:
     requested_pairs = repo_branch_pairs or []
-    pairs: list[tuple[str, str]] = [(repo.strip(), branch.strip()) for repo, branch in requested_pairs]
+    pairs: list[tuple[str, str]] = [
+        (repo.strip(), branch.strip()) for repo, branch in requested_pairs
+    ]
     if not pairs:
         pairs = [("", "")]
     workspace_root = _workspace_root_expression(workspace_root_wsl)
@@ -1309,7 +1305,7 @@ def _build_runtime_wsl_wait_script(*, session_name: str, progress_log_path: str 
         'printf "[BranchNexus] Terminal acildi, runtime hazirligi suruyor...\\n"',
         'printf "[BranchNexus] Canli adim loglari bu pencerede goruntulenecek.\\n"',
         (
-            'if ! command -v tmux >/dev/null 2>&1; then '
+            "if ! command -v tmux >/dev/null 2>&1; then "
             'printf "[BranchNexus] tmux bulunamadi. Lutfen tmux kurulumunu kontrol edin.\\n"; '
             f"{shell_entry}; fi"
         ),
@@ -1319,34 +1315,30 @@ def _build_runtime_wsl_wait_script(*, session_name: str, progress_log_path: str 
     lines.extend(
         [
             f"progress_log={quoted_path}",
-            (
-                'if [ -z "${progress_log:-}" ]; then '
-                f"progress_log={default_progress_log}; "
-                "fi"
-            ),
+            (f'if [ -z "${{progress_log:-}}" ]; then progress_log={default_progress_log}; fi'),
             'printf "[BranchNexus] Canli log dosyasi: %s\\n" "$progress_log"',
             (
                 'if [ -n "${progress_log:-}" ]; then '
                 'mkdir -p "$(dirname "$progress_log")" >/dev/null 2>&1 || true; '
                 'if touch "$progress_log" >/dev/null 2>&1; then '
                 'tail -n +1 -F "$progress_log" & log_tail_pid=$!; '
-                'else '
+                "else "
                 'printf "[BranchNexus] Canli log dosyasi yazilamadi, tail atlandi.\\n"; '
-                'fi; '
+                "fi; "
                 "fi"
             ),
         ]
     )
     lines.extend(
         [
-            f'until tmux has-session -t {shlex.quote(session_name)} 2>/dev/null; do sleep 0.25; done',
+            f"until tmux has-session -t {shlex.quote(session_name)} 2>/dev/null; do sleep 0.25; done",
             (
                 'if [ -n "${log_tail_pid:-}" ]; then '
                 'kill "$log_tail_pid" >/dev/null 2>&1 || true; '
                 'wait "$log_tail_pid" >/dev/null 2>&1 || true; fi'
             ),
             'printf "[BranchNexus] Hazir. Tmux oturumuna baglaniliyor...\\n"',
-            f'exec tmux attach-session -t {shlex.quote(session_name)}',
+            f"exec tmux attach-session -t {shlex.quote(session_name)}",
         ]
     )
     return "; ".join(lines)
@@ -1368,11 +1360,6 @@ def build_runtime_wait_open_commands(
     shell_command.extend(["--", "bash", "-lc", wait_script])
     creation_flags = getattr(subprocess, "CREATE_NEW_CONSOLE", 0)
     commands: list[tuple[list[str], int]] = [(shell_command, creation_flags)]
-    fallback_prefix = "wsl"
-    if wsl_distribution.strip():
-        fallback_prefix = f"wsl -d {wsl_distribution.strip()}"
-    fallback_command = f"{fallback_prefix} -- bash -lc {shlex.quote(wait_script)}"
-    commands.append((["powershell.exe", "-NoExit", "-Command", fallback_command], creation_flags))
     logger.debug("runtime-open wait-command-candidates count=%s", len(commands))
     return commands
 
@@ -1408,10 +1395,12 @@ def open_runtime_waiting_terminal(
         try:
             process = subprocess.Popen(command, creationflags=creation_flags, env=launch_env)
         except OSError:
-            logger.debug("Runtime wait terminal candidate failed command=%s", command, exc_info=True)
+            logger.debug(
+                "Runtime wait terminal candidate failed command=%s", command, exc_info=True
+            )
             continue
         try:
-            process.wait(timeout=0.35)
+            process.wait(timeout=1.0)
         except subprocess.TimeoutExpired:
             logger.info("runtime-open wait-launch-success index=%s reason=process-running", index)
             return True
@@ -1452,9 +1441,12 @@ def _run_runtime_wsl_tmux_script(
         text=True,
         check=False,
         env=run_env,
+        **_background_subprocess_kwargs(),
     )
     if result.returncode == 0:
-        logger.debug("runtime-open tmux-ok step=%s stdout=%s", step, _truncate_log_text(result.stdout))
+        logger.debug(
+            "runtime-open tmux-ok step=%s stdout=%s", step, _truncate_log_text(result.stdout)
+        )
         _emit_terminal_progress(
             verbose_sink,
             level="OK",
@@ -1603,16 +1595,22 @@ def launch_tmux_terminal(distribution: str, session_name: str = "branchnexus") -
             logger.debug("Terminal launch candidate failed command=%s", command, exc_info=True)
             continue
         try:
-            process.wait(timeout=0.35)
+            process.wait(timeout=1.0)
         except subprocess.TimeoutExpired:
             logger.debug("Launched external terminal command=%s", command)
             return True
         if process.returncode == 0:
             logger.debug("Launched external terminal command=%s", command)
             return True
-        logger.debug("Terminal launch candidate exited code=%s command=%s", process.returncode, command)
+        logger.debug(
+            "Terminal launch candidate exited code=%s command=%s", process.returncode, command
+        )
         continue
-    logger.error("Failed to launch terminal for tmux attach distribution=%s session=%s", distribution, session_name)
+    logger.error(
+        "Failed to launch terminal for tmux attach distribution=%s session=%s",
+        distribution,
+        session_name,
+    )
     return False
 
 
@@ -1670,11 +1668,9 @@ def build_runtime_open_commands(
         # For WSL runtime, prefer direct command launch.
         creation_flags = getattr(subprocess, "CREATE_NEW_CONSOLE", 0)
         commands: list[tuple[list[str], int]] = [(shell_command, creation_flags)]
-        fallback_command = "wsl"
-        if wsl_distribution.strip():
-            fallback_command = f"wsl -d {wsl_distribution.strip()}"
-        commands.append((["powershell.exe", "-NoExit", "-Command", fallback_command], creation_flags))
-        logger.debug("runtime-open command-candidates runtime=%s count=%s", runtime.value, len(commands))
+        logger.debug(
+            "runtime-open command-candidates runtime=%s count=%s", runtime.value, len(commands)
+        )
         return commands
     else:
         shell_command = ["powershell.exe", "-NoLogo", "-NoProfile"]
@@ -1685,12 +1681,9 @@ def build_runtime_open_commands(
 
     creation_flags = getattr(subprocess, "CREATE_NEW_CONSOLE", 0)
     commands.append((shell_command, creation_flags))
-    if runtime == RuntimeKind.WSL:
-        fallback_command = "wsl"
-        if wsl_distribution.strip():
-            fallback_command = f"wsl -d {wsl_distribution.strip()}"
-        commands.append((["powershell.exe", "-NoExit", "-Command", fallback_command], creation_flags))
-    logger.debug("runtime-open command-candidates runtime=%s count=%s", runtime.value, len(commands))
+    logger.debug(
+        "runtime-open command-candidates runtime=%s count=%s", runtime.value, len(commands)
+    )
     return commands
 
 
@@ -1740,11 +1733,13 @@ def open_runtime_terminal(
         try:
             process = subprocess.Popen(command, creationflags=creation_flags, env=launch_env)
         except OSError:
-            logger.debug("Runtime terminal launch candidate failed command=%s", command, exc_info=True)
+            logger.debug(
+                "Runtime terminal launch candidate failed command=%s", command, exc_info=True
+            )
             continue
 
         try:
-            process.wait(timeout=0.35)
+            process.wait(timeout=1.0)
         except subprocess.TimeoutExpired:
             logger.debug("Runtime terminal launched command=%s", command)
             logger.info("runtime-open launch-success index=%s reason=process-running", index)
@@ -1754,7 +1749,9 @@ def open_runtime_terminal(
             logger.debug("Runtime terminal launched command=%s", command)
             logger.info("runtime-open launch-success index=%s reason=zero-exit", index)
             return True
-        logger.debug("Runtime terminal launch exited code=%s command=%s", process.returncode, command)
+        logger.debug(
+            "Runtime terminal launch exited code=%s command=%s", process.returncode, command
+        )
         logger.warning(
             "runtime-open launch-candidate-failed index=%s code=%s",
             index,
@@ -1811,7 +1808,9 @@ def launch_runtime_dashboard(
     state.terminal_template = dashboard.template_count
     state.max_terminals = config.terminal_max_count
     state.terminal_default_runtime = default_runtime.value
-    state.focused_terminal_id = dashboard.focused_terminal_id or (panels[0].terminal_id if panels else "")
+    state.focused_terminal_id = dashboard.focused_terminal_id or (
+        panels[0].terminal_id if panels else ""
+    )
 
     def persist_snapshot() -> None:
         if not config.session_restore_enabled:
@@ -2261,7 +2260,9 @@ def launch_runtime_dashboard(
                 row = 0
                 col = index
                 cards_layout.addWidget(card, row, col)
-                card.clicked.connect(lambda _checked, value=count: self._set_template_from_card(value))
+                card.clicked.connect(
+                    lambda _checked, value=count: self._set_template_from_card(value)
+                )
                 self._template_cards[count] = card
                 self._template_dimensions[count] = (preview_rows, preview_cols)
             cards_layout.setAlignment(Qt.AlignmentFlag.AlignHCenter)
@@ -2292,7 +2293,9 @@ def launch_runtime_dashboard(
             self.load_repos_btn.clicked.connect(self._load_repositories)
             self.reload_wsl_btn.clicked.connect(self._load_wsl_distributions)
             self.font_size_spin.valueChanged.connect(self._on_font_size_changed)
-            self.wsl_distribution_combo.currentTextChanged.connect(self._on_wsl_distribution_changed)
+            self.wsl_distribution_combo.currentTextChanged.connect(
+                self._on_wsl_distribution_changed
+            )
             self.table.itemSelectionChanged.connect(self._focus_selected)
             self._apply_visual_style()
 
@@ -2301,7 +2304,9 @@ def launch_runtime_dashboard(
             self._select_template_card(dashboard.template_count)
             self._refresh()
             if self._repositories_by_name:
-                self._set_status(f"{len(self._repositories_by_name)} kayitli repo otomatik yuklendi.")
+                self._set_status(
+                    f"{len(self._repositories_by_name)} kayitli repo otomatik yuklendi."
+                )
             elif self.github_token_edit.text().strip():
                 QTimer.singleShot(0, self._load_repositories)
 
@@ -2333,7 +2338,9 @@ def launch_runtime_dashboard(
                 if not key:
                     continue
                 normalized_branches = [
-                    branch.strip() for branch in branches if isinstance(branch, str) and branch.strip()
+                    branch.strip()
+                    for branch in branches
+                    if isinstance(branch, str) and branch.strip()
                 ]
                 branches_by_repo[key] = normalized_branches
             self._branches_by_repo = branches_by_repo
@@ -2342,10 +2349,14 @@ def launch_runtime_dashboard(
             config.github_token = self.github_token_edit.text().strip()
             config.github_repositories_cache = [
                 {"full_name": repository.full_name, "clone_url": repository.clone_url}
-                for repository in sorted(self._repositories_by_name.values(), key=lambda item: item.full_name.lower())
+                for repository in sorted(
+                    self._repositories_by_name.values(), key=lambda item: item.full_name.lower()
+                )
             ]
             config.github_branches_cache = {
-                repo_name: [branch for branch in branches if isinstance(branch, str) and branch.strip()]
+                repo_name: [
+                    branch for branch in branches if isinstance(branch, str) and branch.strip()
+                ]
                 for repo_name, branches in sorted(self._branches_by_repo.items())
                 if isinstance(repo_name, str) and repo_name.strip()
             }
@@ -2415,10 +2426,8 @@ def launch_runtime_dashboard(
         def _on_font_size_changed(self, value: int) -> None:
             self._terminal_font_size = max(8, min(24, int(value)))
             self._set_status(
-                
-                    f"Terminal yazi boyutu ayarlandi: {self._terminal_font_size}px "
-                    "(bir sonraki Ac isleminde uygulanir)"
-                
+                f"Terminal yazi boyutu ayarlandi: {self._terminal_font_size}px "
+                "(bir sonraki Ac isleminde uygulanir)"
             )
 
         def _tick_spinner(self) -> None:
@@ -2579,7 +2588,9 @@ def launch_runtime_dashboard(
                 item.full_name: item for item in repositories if isinstance(item, GitHubRepository)
             }
             self._branches_by_repo = {
-                str(name): [branch for branch in values if isinstance(branch, str) and branch.strip()]
+                str(name): [
+                    branch for branch in values if isinstance(branch, str) and branch.strip()
+                ]
                 if isinstance(values, list)
                 else []
                 for name, values in branches_by_repo.items()
@@ -2631,7 +2642,9 @@ def launch_runtime_dashboard(
             self._set_status(f"{repo_name} icin branch listesi yukleniyor...")
             thread.start()
 
-        def _on_branch_load_success(self, repo_name: str, terminal_id: str, branches_payload: object) -> None:
+        def _on_branch_load_success(
+            self, repo_name: str, terminal_id: str, branches_payload: object
+        ) -> None:
             if not isinstance(branches_payload, list):
                 self._set_status(f"{repo_name} branch listesi beklenmeyen formatta.", error=True)
                 return
@@ -2675,7 +2688,9 @@ def launch_runtime_dashboard(
             cleanup = "clean" if clicked is clean_btn else "preserve"
             self._remove_terminal_by_id(terminal_id, cleanup=cleanup, announce=True)
 
-        def _remove_terminal_by_id(self, terminal_id: str, *, cleanup: str = "preserve", announce: bool = True) -> None:
+        def _remove_terminal_by_id(
+            self, terminal_id: str, *, cleanup: str = "preserve", announce: bool = True
+        ) -> None:
             try:
                 dashboard.remove_terminal(terminal_id, cleanup=cleanup)
             except BranchNexusError as exc:
@@ -2713,7 +2728,9 @@ def launch_runtime_dashboard(
                 self._set_status("Bu surum yalnizca WSL runtime destekler.", error=True)
                 return
 
-            def resolve_terminal_context(spec_terminal_id: str, spec_repo_path: str, spec_branch: str) -> tuple[str, str]:
+            def resolve_terminal_context(
+                spec_terminal_id: str, spec_repo_path: str, spec_branch: str
+            ) -> tuple[str, str]:
                 repo_name = self._pending_repo_by_terminal.get(spec_terminal_id, "").strip()
                 branch_name = self._pending_branch_by_terminal.get(spec_terminal_id, "").strip()
 
@@ -2991,7 +3008,10 @@ def launch_runtime_dashboard(
                 self._set_status("Depo bilgisi bulunamadi. Repo listesini yenileyin.", error=True)
                 return
 
-            instance = next((item for item in service.list_instances() if item.spec.terminal_id == terminal_id), None)
+            instance = next(
+                (item for item in service.list_instances() if item.spec.terminal_id == terminal_id),
+                None,
+            )
             if instance is None:
                 self._set_status("Terminal bulunamadi.", error=True)
                 return
@@ -3045,7 +3065,9 @@ def launch_runtime_dashboard(
                     remove_btn.setToolTip(f"{panel.terminal_id} terminalini kaldir")
                     remove_btn.setFixedSize(28, 28)
                     remove_btn.clicked.connect(
-                        lambda _checked=False, terminal_id=panel.terminal_id: self._remove_terminal_inline(terminal_id)
+                        lambda _checked=False, terminal_id=panel.terminal_id: (
+                            self._remove_terminal_inline(terminal_id)
+                        )
                     )
                     title_layout.addWidget(title_label, 1)
                     title_layout.addWidget(remove_btn, 0, Qt.AlignmentFlag.AlignRight)
@@ -3093,10 +3115,14 @@ def launch_runtime_dashboard(
                     self._branch_combo_by_terminal[panel.terminal_id] = branch_combo
 
                     repo_combo.currentIndexChanged.connect(
-                        lambda _index, terminal_id=panel.terminal_id: self._on_row_repo_changed(terminal_id)
+                        lambda _index, terminal_id=panel.terminal_id: self._on_row_repo_changed(
+                            terminal_id
+                        )
                     )
                     branch_combo.currentIndexChanged.connect(
-                        lambda _index, terminal_id=panel.terminal_id: self._on_row_branch_changed(terminal_id)
+                        lambda _index, terminal_id=panel.terminal_id: self._on_row_branch_changed(
+                            terminal_id
+                        )
                     )
 
                 if focus_row >= 0:
@@ -3316,5 +3342,9 @@ def launch_app(
         logger.info("runtime-open fresh-start request source=cli")
         _run_fresh_start_reset(config=config, config_path=config_path)
     state = build_state_from_config(config)
-    logger.info("runtime-v2 startup decision enabled=%s source=%s forced_on=%s", True, "runtime-only", False)
-    return launch_runtime_dashboard(config=config, state=state, config_path=config_path, run_ui=True)
+    logger.info(
+        "runtime-v2 startup decision enabled=%s source=%s forced_on=%s", True, "runtime-only", False
+    )
+    return launch_runtime_dashboard(
+        config=config, state=state, config_path=config_path, run_ui=True
+    )

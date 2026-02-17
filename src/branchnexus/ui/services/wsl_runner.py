@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging as py_logging
 import subprocess
+import sys
 import threading
 import time
 from collections.abc import Callable
@@ -22,6 +23,22 @@ from branchnexus.ui.services.security import (
 )
 
 logger = py_logging.getLogger(__name__)
+
+
+def background_subprocess_kwargs() -> dict[str, object]:
+    """Return platform-safe kwargs that hide Windows background consoles."""
+    if sys.platform != "win32":
+        return {}
+    kwargs: dict[str, object] = {
+        "creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0),
+    }
+    startupinfo_factory = getattr(subprocess, "STARTUPINFO", None)
+    if startupinfo_factory is not None:
+        startupinfo = startupinfo_factory()
+        startupinfo.dwFlags |= getattr(subprocess, "STARTF_USESHOWWINDOW", 0)
+        startupinfo.wShowWindow = getattr(subprocess, "SW_HIDE", 0)
+        kwargs["startupinfo"] = startupinfo
+    return kwargs
 
 
 def _format_terminal_progress_line(level: str, step: str, message: str) -> str:
@@ -59,6 +76,7 @@ def run_with_heartbeat(
     done = threading.Event()
 
     def _worker() -> None:
+        run_kwargs = background_subprocess_kwargs()
         try:
             holder["result"] = subprocess.run(
                 command,
@@ -68,6 +86,7 @@ def run_with_heartbeat(
                 env=env,
                 input=input_text,
                 timeout=timeout_seconds,
+                **run_kwargs,
             )
         except BaseException as exc:  # pragma: no cover - passthrough
             error["exc"] = exc

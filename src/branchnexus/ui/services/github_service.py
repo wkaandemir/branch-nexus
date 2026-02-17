@@ -21,6 +21,7 @@ from branchnexus.ui.runtime.constants import (
 )
 from branchnexus.ui.services.security import command_for_log, truncate_log
 from branchnexus.ui.services.wsl_runner import (
+    background_subprocess_kwargs,
     emit_terminal_progress,
     run_with_heartbeat,
     run_wsl_probe_script,
@@ -474,6 +475,7 @@ def windows_to_wsl_path(
         check=False,
         env=run_env,
         timeout=30,
+        **background_subprocess_kwargs(),
     )
     path = (result.stdout or "").strip()
     if result.returncode == 0 and path:

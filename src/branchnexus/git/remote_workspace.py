@@ -6,6 +6,7 @@ import logging as py_logging
 import re
 import shlex
 import subprocess
+import sys
 from pathlib import PurePosixPath
 
 from branchnexus.errors import BranchNexusError, ExitCode
@@ -14,6 +15,22 @@ from branchnexus.runtime.wsl_discovery import build_wsl_command
 logger = py_logging.getLogger(__name__)
 
 _REPO_NAME_FROM_URL = re.compile(r"([^/]+?)(?:\.git)?$")
+
+
+def _background_runner_kwargs(runner: callable) -> dict[str, object]:
+    """Hide transient Windows console windows for default subprocess runner."""
+    if runner is not subprocess.run or sys.platform != "win32":
+        return {}
+    kwargs: dict[str, object] = {
+        "creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0),
+    }
+    startupinfo_factory = getattr(subprocess, "STARTUPINFO", None)
+    if startupinfo_factory is not None:
+        startupinfo = startupinfo_factory()
+        startupinfo.dwFlags |= getattr(subprocess, "STARTF_USESHOWWINDOW", 0)
+        startupinfo.wShowWindow = getattr(subprocess, "SW_HIDE", 0)
+        kwargs["startupinfo"] = startupinfo
+    return kwargs
 
 
 def repo_name_from_url(repo_url: str) -> str:
@@ -34,6 +51,7 @@ def _run_wsl(distribution: str, command: list[str], runner: callable) -> subproc
         capture_output=True,
         text=True,
         check=False,
+        **_background_runner_kwargs(runner),
     )
 
 

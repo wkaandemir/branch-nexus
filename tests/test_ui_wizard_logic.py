@@ -232,7 +232,10 @@ def test_build_orchestration_request_supports_repo_per_pane() -> None:
         repo_sync=lambda **_: PurePosixPath("/home/demo/repo"),
         branch_loader=branch_loader,
     )
-    assert [str(item.repo_path) for item in request.assignments] == ["/home/demo/repo-a", "/home/demo/repo-b"]
+    assert [str(item.repo_path) for item in request.assignments] == [
+        "/home/demo/repo-a",
+        "/home/demo/repo-b",
+    ]
     assert loaded_repos == ["/home/demo/repo-a", "/home/demo/repo-b"]
 
 
@@ -283,7 +286,16 @@ def test_build_terminal_launch_commands_prefers_windows_terminal() -> None:
     ]
     assert commands[0][1] == 0
     assert commands[1][0][:3] == ["wt.exe", "new-tab", "--title"]
-    assert commands[-1][0] == ["wsl.exe", "-d", "Ubuntu", "--", "tmux", "attach-session", "-t", "branchnexus"]
+    assert commands[-1][0] == [
+        "wsl.exe",
+        "-d",
+        "Ubuntu",
+        "--",
+        "tmux",
+        "attach-session",
+        "-t",
+        "branchnexus",
+    ]
 
 
 def test_build_terminal_launch_commands_include_windowsapps_candidate() -> None:
@@ -292,11 +304,26 @@ def test_build_terminal_launch_commands_include_windowsapps_candidate() -> None:
         "bnx",
         which=lambda _name: None,
         environ={"LOCALAPPDATA": r"C:\Users\demo\AppData\Local"},
-        command_builder=lambda distribution, command: ["wsl.exe", "-d", distribution, "--", *command],
+        command_builder=lambda distribution, command: [
+            "wsl.exe",
+            "-d",
+            distribution,
+            "--",
+            *command,
+        ],
     )
     assert commands[0][0][0] == "wt.exe"
     assert commands[2][0][0].replace("/", "\\").endswith(r"Microsoft\WindowsApps\wt.exe")
-    assert commands[-1][0] == ["wsl.exe", "-d", "Ubuntu", "--", "tmux", "attach-session", "-t", "bnx"]
+    assert commands[-1][0] == [
+        "wsl.exe",
+        "-d",
+        "Ubuntu",
+        "--",
+        "tmux",
+        "attach-session",
+        "-t",
+        "bnx",
+    ]
     assert isinstance(commands[-1][1], int)
 
 
@@ -329,7 +356,7 @@ def test_build_runtime_open_commands_for_wsl() -> None:
     assert "git clone https://github.com/org/repo.git" in commands[0][0][6]
     assert 'http.extraheader="Authorization: Bearer ${BRANCHNEXUS_GH_TOKEN}"' in commands[0][0][6]
     assert "git switch feature-x" in commands[0][0][6]
-    assert commands[-1][0] == ["powershell.exe", "-NoExit", "-Command", "wsl -d Ubuntu"]
+    assert len(commands) == 1
 
 
 def test_build_runtime_wait_open_commands_for_wsl() -> None:

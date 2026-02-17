@@ -5,11 +5,28 @@ from __future__ import annotations
 import logging as py_logging
 import re
 import subprocess
+import sys
 from collections.abc import Sequence
 
 from branchnexus.errors import BranchNexusError, ExitCode
 
 logger = py_logging.getLogger(__name__)
+
+
+def _background_runner_kwargs(runner: callable) -> dict[str, object]:
+    """Hide transient Windows console windows for direct subprocess.run calls."""
+    if runner is not subprocess.run or sys.platform != "win32":
+        return {}
+    kwargs: dict[str, object] = {
+        "creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0),
+    }
+    startupinfo_factory = getattr(subprocess, "STARTUPINFO", None)
+    if startupinfo_factory is not None:
+        startupinfo = startupinfo_factory()
+        startupinfo.dwFlags |= getattr(subprocess, "STARTF_USESHOWWINDOW", 0)
+        startupinfo.wShowWindow = getattr(subprocess, "SW_HIDE", 0)
+        kwargs["startupinfo"] = startupinfo
+    return kwargs
 
 
 def _decode_process_output(value: bytes | str | None) -> str:
@@ -56,7 +73,13 @@ def _fallback_windows_to_wsl_path(host_path: str) -> str:
 
 def list_distributions(runner: callable = subprocess.run) -> list[str]:
     logger.debug("Listing WSL distributions using wsl.exe -l -q")
-    result = runner(["wsl.exe", "-l", "-q"], capture_output=True, text=False, check=False)
+    result = runner(
+        ["wsl.exe", "-l", "-q"],
+        capture_output=True,
+        text=False,
+        check=False,
+        **_background_runner_kwargs(runner),
+    )
     stdout = _decode_process_output(result.stdout)
     stderr = _decode_process_output(result.stderr)
     if result.returncode != 0:
@@ -113,7 +136,13 @@ def to_wsl_path(
 
     command = build_wsl_command(distribution, ["wslpath", "-a", normalized])
     logger.debug("Resolving WSL path for host path: %s", host_path)
-    result = runner(command, capture_output=True, text=False, check=False)
+    result = runner(
+        command,
+        capture_output=True,
+        text=False,
+        check=False,
+        **_background_runner_kwargs(runner),
+    )
     stdout = _decode_process_output(result.stdout).strip()
     stderr = _decode_process_output(result.stderr).strip()
     if result.returncode != 0 or not stdout:

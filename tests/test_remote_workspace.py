@@ -5,6 +5,7 @@ from pathlib import PurePosixPath
 
 import pytest
 
+import branchnexus.git.remote_workspace as remote_workspace
 from branchnexus.errors import BranchNexusError
 from branchnexus.git.remote_workspace import (
     ensure_remote_repo_synced,
@@ -45,6 +46,25 @@ def test_resolve_wsl_home_directory_raises_on_failure() -> None:
 
     with pytest.raises(BranchNexusError):
         resolve_wsl_home_directory(distribution="Ubuntu", runner=runner)
+
+
+def test_resolve_wsl_home_directory_custom_runner_signature_on_win(monkeypatch) -> None:
+    monkeypatch.setattr(remote_workspace.sys, "platform", "win32")
+
+    def runner(
+        cmd: list[str],
+        *,
+        capture_output: bool,
+        text: bool,
+        check: bool,
+    ) -> subprocess.CompletedProcess:
+        assert cmd[0] == "wsl.exe"
+        assert capture_output is True
+        assert text is True
+        assert check is False
+        return _cp(0, stdout="/home/demo")
+
+    assert resolve_wsl_home_directory(distribution="Ubuntu", runner=runner) == PurePosixPath("/home/demo")
 
 
 def test_clone_when_repo_missing() -> None:

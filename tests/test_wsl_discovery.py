@@ -4,6 +4,7 @@ import subprocess
 
 import pytest
 
+import branchnexus.runtime.wsl_discovery as wsl_discovery
 from branchnexus.errors import BranchNexusError
 from branchnexus.runtime.wsl_discovery import (
     _decode_process_output,
@@ -36,6 +37,25 @@ def test_list_distributions_raises_on_empty_output() -> None:
         list_distributions(runner=runner)
 
 
+def test_list_distributions_custom_runner_signature_on_win(monkeypatch) -> None:
+    monkeypatch.setattr(wsl_discovery.sys, "platform", "win32")
+
+    def runner(
+        command: list[str],
+        *,
+        capture_output: bool,
+        text: bool,
+        check: bool,
+    ) -> subprocess.CompletedProcess:
+        assert capture_output is True
+        assert text is False
+        assert check is False
+        assert command == ["wsl.exe", "-l", "-q"]
+        return _cp(0, "Ubuntu\n")
+
+    assert list_distributions(runner=runner) == ["Ubuntu"]
+
+
 def test_build_wsl_command() -> None:
     cmd = build_wsl_command("Ubuntu", ["git", "status"])
     assert cmd == ["wsl.exe", "-d", "Ubuntu", "--", "git", "status"]
@@ -60,6 +80,25 @@ def test_to_wsl_path_converts_windows_paths() -> None:
 
     assert to_wsl_path("Ubuntu", r"C:\Users\test\repo", runner=runner) == "/mnt/c/Users/test/repo"
     assert seen["cmd"][-1] == "C:/Users/test/repo"
+
+
+def test_to_wsl_path_custom_runner_signature_on_win(monkeypatch) -> None:
+    monkeypatch.setattr(wsl_discovery.sys, "platform", "win32")
+
+    def runner(
+        command: list[str],
+        *,
+        capture_output: bool,
+        text: bool,
+        check: bool,
+    ) -> subprocess.CompletedProcess:
+        assert command[-2:] == ["-a", "C:/Users/test/repo"]
+        assert capture_output is True
+        assert text is False
+        assert check is False
+        return _cp(0, b"/mnt/c/Users/test/repo\n")
+
+    assert to_wsl_path("Ubuntu", r"C:\Users\test\repo", runner=runner) == "/mnt/c/Users/test/repo"
 
 
 def test_to_wsl_path_uses_fallback_on_wslpath_failure() -> None:
