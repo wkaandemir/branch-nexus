@@ -23,7 +23,7 @@ def test_tmux_existing_skips_install() -> None:
     assert result.install_attempted is False
 
 
-def test_tmux_missing_attempts_install() -> None:
+def test_tmux_missing_attempts_noninteractive_install() -> None:
     seen_install = {"called": False}
 
     def runner(cmd: list[str], **_: object) -> subprocess.CompletedProcess:
@@ -31,7 +31,8 @@ def test_tmux_missing_attempts_install() -> None:
             return _cp(1)
         if cmd[-2:] == ["cat", "/etc/os-release"]:
             return _cp(0, "ID=ubuntu\n")
-        if cmd[-3:] == ["bash", "-lc", "sudo apt-get update && sudo apt-get install -y tmux"]:
+        # _try_noninteractive_install adds -n to the plain sudo command
+        if cmd[-3:] == ["bash", "-lc", "sudo -n apt-get update && sudo -n apt-get install -y tmux"]:
             seen_install["called"] = True
             return _cp(0)
         raise AssertionError(f"unexpected command: {cmd}")
@@ -47,8 +48,9 @@ def test_tmux_missing_and_install_fails_raises_manual_guidance() -> None:
             return _cp(1)
         if cmd[-2:] == ["cat", "/etc/os-release"]:
             return _cp(0, "ID=ubuntu\n")
-        if cmd[-3:] == ["bash", "-lc", "sudo apt-get update && sudo apt-get install -y tmux"]:
-            return _cp(1, stderr="network")
+        # Non-interactive install fails (triggers interactive path)
+        if cmd[-3:] == ["bash", "-lc", "sudo -n apt-get update && sudo -n apt-get install -y tmux"]:
+            return _cp(1, stderr="password required")
         raise AssertionError(f"unexpected command: {cmd}")
 
     with pytest.raises(BranchNexusError) as exc:

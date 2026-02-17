@@ -19,15 +19,44 @@ class BootstrapResult:
 
 
 def _install_command_for_os_release(os_release: str) -> str:
+    """Return the interactive install command (with plain sudo) for the given OS."""
     lowered = os_release.lower()
-    if "debian" in lowered or "ubuntu" in lowered:
+
+    # Debian family (apt-get)
+    _debian_ids = ("debian", "ubuntu", "pengwin", "kali", "mint", "pop", "elementary", "zorin")
+    if any(name in lowered for name in _debian_ids) or "id_like=debian" in lowered.replace(" ", ""):
         return "sudo apt-get update && sudo apt-get install -y tmux"
-    if "fedora" in lowered or "rhel" in lowered or "centos" in lowered:
+
+    # Red Hat family (dnf)
+    _rhel_ids = ("fedora", "rhel", "centos", "rocky", "almalinux", "oracle", "amazon", "noble")
+    if any(name in lowered for name in _rhel_ids):
         return "sudo dnf install -y tmux"
-    if "arch" in lowered:
+
+    # Arch family (pacman)
+    _arch_ids = ("arch", "manjaro", "endeavouros", "garuda")
+    if any(name in lowered for name in _arch_ids) or "id_like=arch" in lowered.replace(" ", ""):
         return "sudo pacman -S --noconfirm tmux"
+
+    # SUSE family (zypper)
     if "opensuse" in lowered or "suse" in lowered:
         return "sudo zypper install -y tmux"
+
+    # Alpine (apk)
+    if "alpine" in lowered:
+        return "sudo apk add tmux"
+
+    # Void Linux (xbps)
+    if "void" in lowered:
+        return "sudo xbps-install -Sy tmux"
+
+    # Gentoo (emerge)
+    if "gentoo" in lowered:
+        return "sudo emerge app-misc/tmux"
+
+    # NixOS (nix profile — no sudo needed)
+    if "nixos" in lowered or "nix" in lowered:
+        return "nix profile install nixpkgs#tmux"
+
     raise BranchNexusError(
         "Unsupported distribution for automatic tmux install.",
         code=ExitCode.TMUX_ERROR,
@@ -41,6 +70,71 @@ def _manual_install_guidance(os_release: str) -> str:
         return f"Run this inside WSL: {cmd}"
     except BranchNexusError:
         return "Install tmux manually in the selected distribution and retry."
+
+
+def _try_noninteractive_install(
+    distribution: str,
+    install_cmd: str,
+    runner: callable,
+) -> bool:
+    """Attempt installation with sudo -n (no password prompt).
+
+    Returns True if installation succeeded without a password.
+    """
+    noninteractive_cmd = install_cmd.replace("sudo ", "sudo -n ")
+    logger.debug("Trying non-interactive tmux install in distribution=%s", distribution)
+    result = runner(
+        build_wsl_command(distribution, ["bash", "-lc", noninteractive_cmd]),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode == 0:
+        logger.info("Non-interactive tmux install succeeded in distribution=%s", distribution)
+        return True
+    logger.debug(
+        "Non-interactive install failed (password likely required) distribution=%s stderr=%s",
+        distribution,
+        result.stderr.strip()[:200],
+    )
+    return False
+
+
+def _run_interactive_install(
+    distribution: str,
+    install_cmd: str,
+) -> bool:
+    """Open a visible WSL console for the user to enter their sudo password.
+
+    The window stays open until the install finishes, then closes automatically.
+    Returns True if the process exited successfully.
+    """
+    script = (
+        f"echo '[BranchNexus] tmux kurulumu gerekli. Lutfen sudo sifrenizi girin:' && "
+        f"{install_cmd} && "
+        f"echo '' && echo '[BranchNexus] tmux basariyla kuruldu!' && sleep 1"
+    )
+    command = ["wsl.exe", "-d", distribution, "--", "bash", "-lc", script]
+    creation_flags = getattr(subprocess, "CREATE_NEW_CONSOLE", 0)
+    logger.info(
+        "Opening interactive WSL terminal for tmux install distribution=%s",
+        distribution,
+    )
+    try:
+        process = subprocess.Popen(command, creationflags=creation_flags)
+        exit_code = process.wait()
+        logger.info(
+            "Interactive tmux install exited code=%s distribution=%s",
+            exit_code,
+            distribution,
+        )
+        return exit_code == 0
+    except OSError:
+        logger.error(
+            "Failed to open interactive WSL terminal for tmux install",
+            exc_info=True,
+        )
+        return False
 
 
 def ensure_tmux(
@@ -78,21 +172,31 @@ def ensure_tmux(
         )
 
     install_cmd = _install_command_for_os_release(os_release)
-    logger.info("Attempting automatic tmux installation in distribution=%s", distribution)
-    install_result = runner(
-        build_wsl_command(distribution, ["bash", "-lc", install_cmd]),
+
+    # 1) Try passwordless install first (fast path).
+    if _try_noninteractive_install(distribution, install_cmd, runner):
+        return BootstrapResult(tmux_available=True, install_attempted=True)
+
+    # 2) Password required — open an interactive terminal for the user.
+    logger.info("Passwordless sudo unavailable; opening interactive install window")
+    if not _run_interactive_install(distribution, install_cmd):
+        raise BranchNexusError(
+            "Interactive tmux installation failed or was cancelled.",
+            code=ExitCode.TMUX_ERROR,
+            hint=_manual_install_guidance(os_release),
+        )
+
+    # 3) Verify tmux is actually installed after interactive step.
+    verify = runner(
+        build_wsl_command(distribution, ["command", "-v", "tmux"]),
         capture_output=True,
         text=True,
         check=False,
     )
-    if install_result.returncode != 0:
-        logger.error(
-            "Automatic tmux installation failed in distribution=%s stderr=%s",
-            distribution,
-            install_result.stderr.strip(),
-        )
+    if verify.returncode != 0:
+        logger.error("tmux still not found after interactive install distribution=%s", distribution)
         raise BranchNexusError(
-            "Automatic tmux installation failed.",
+            "tmux installation could not be verified.",
             code=ExitCode.TMUX_ERROR,
             hint=_manual_install_guidance(os_release),
         )

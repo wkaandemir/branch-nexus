@@ -36,6 +36,7 @@ from branchnexus.git.remote_workspace import (
     resolve_wsl_home_directory,
 )
 from branchnexus.orchestrator import OrchestrationRequest
+from branchnexus.tmux.bootstrap import ensure_tmux
 from branchnexus.presets import resolve_terminal_template
 from branchnexus.runtime.wsl_discovery import build_wsl_command, list_distributions, to_wsl_path
 from branchnexus.session import build_runtime_snapshot, parse_runtime_snapshot
@@ -2000,6 +2001,13 @@ def launch_runtime_dashboard(
                         )
                     )
                     self.progress.emit("open-preflight", "Runtime hazirlik adimlari baslatildi...")
+                    self.progress.emit("tmux-bootstrap", "tmux kontrol ediliyor...")
+                    ensure_tmux(
+                        self.wsl_distribution,
+                        auto_install=True,
+                        runner=subprocess.run,
+                    )
+                    self.progress.emit("tmux-bootstrap", "tmux hazir.")
                     reset_runtime_wsl_session(
                         distribution=self.wsl_distribution,
                         env=launch_env,
