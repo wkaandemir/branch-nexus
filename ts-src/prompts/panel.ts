@@ -65,8 +65,10 @@ interface KeypressKey {
   shift?: boolean;
 }
 
-// eslint-disable-next-line no-control-regex
-const ANSI_RE = /[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[-a-zA-Z\d/#&.:=?%@~_]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-nq-uy=><~]))/g;
+/* eslint-disable no-control-regex */
+const ANSI_RE =
+  /[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[-a-zA-Z\d/#&.:=?%@~_]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-nq-uy=><~]))/g;
+/* eslint-enable no-control-regex */
 const CLR = '\x1B[K';
 
 function stripAnsi(str: string): string {
@@ -88,7 +90,14 @@ function boxLine(content: string, width: number): string {
 
 function boxTop(title: string, width: number, pal: ColorPalette): string {
   const tPad = Math.floor((width - title.length) / 2);
-  return '╔' + '═'.repeat(tPad) + pal.primaryBold(title) + '═'.repeat(width - tPad - title.length) + '╗' + CLR;
+  return (
+    '╔' +
+    '═'.repeat(tPad) +
+    pal.primaryBold(title) +
+    '═'.repeat(width - tPad - title.length) +
+    '╗' +
+    CLR
+  );
 }
 
 function boxMid(width: number): string {
@@ -115,9 +124,9 @@ function renderButton(label: string, focused: boolean, width: number, pal: Color
 }
 
 /** Shared keypress loop — returns a promise + teardown hook */
-function attachKeypress(
-  handler: (str: string | undefined, key: KeypressKey) => void
-): { teardown: () => void } {
+function attachKeypress(handler: (str: string | undefined, key: KeypressKey) => void): {
+  teardown: () => void;
+} {
   readline.emitKeypressEvents(process.stdin);
   const wasRaw = process.stdin.isRaw ?? false;
   if (process.stdin.isTTY === true) {
@@ -204,7 +213,13 @@ function renderPanel(state: PanelState): string {
 
   // 1) GitHub Token toggle
   const tokLabel = state.hasToken ? 'Evet' : 'Hayır';
-  lines.push(fRow(FIELD.HAS_TOKEN, 'GitHub Token', selectDisplay(tokLabel, state.focusIndex === FIELD.HAS_TOKEN, pal)));
+  lines.push(
+    fRow(
+      FIELD.HAS_TOKEN,
+      'GitHub Token',
+      selectDisplay(tokLabel, state.focusIndex === FIELD.HAS_TOKEN, pal)
+    )
+  );
 
   // 2) Token input (conditional)
   if (state.hasToken) {
@@ -233,18 +248,42 @@ function renderPanel(state: PanelState): string {
   lines.push(fRow(FIELD.REPO, 'Repository URL', rv));
 
   // 4) Layout
-  lines.push(fRow(FIELD.LAYOUT, 'Layout', selectDisplay(LAYOUTS[state.layoutIndex].label, state.focusIndex === FIELD.LAYOUT, pal)));
+  lines.push(
+    fRow(
+      FIELD.LAYOUT,
+      'Layout',
+      selectDisplay(LAYOUTS[state.layoutIndex].label, state.focusIndex === FIELD.LAYOUT, pal)
+    )
+  );
 
   // 5) Pane Count
-  lines.push(fRow(FIELD.PANES, 'Pane Sayısı', selectDisplay(String(PANE_OPTIONS[state.panesIndex]), state.focusIndex === FIELD.PANES, pal)));
+  lines.push(
+    fRow(
+      FIELD.PANES,
+      'Pane Sayısı',
+      selectDisplay(String(PANE_OPTIONS[state.panesIndex]), state.focusIndex === FIELD.PANES, pal)
+    )
+  );
 
   // 6) Cleanup
-  lines.push(fRow(FIELD.CLEANUP, 'Cleanup', selectDisplay(CLEANUP_OPTIONS[state.cleanupIndex].label, state.focusIndex === FIELD.CLEANUP, pal)));
+  lines.push(
+    fRow(
+      FIELD.CLEANUP,
+      'Cleanup',
+      selectDisplay(
+        CLEANUP_OPTIONS[state.cleanupIndex].label,
+        state.focusIndex === FIELD.CLEANUP,
+        pal
+      )
+    )
+  );
 
   // 7) Color Theme
   const colorLabel = COLOR_OPTIONS[state.colorIndex].label;
   const colorPreview = pal.primary('■ ') + colorLabel;
-  lines.push(fRow(FIELD.COLOR, 'Renk', selectDisplay(colorPreview, state.focusIndex === FIELD.COLOR, pal)));
+  lines.push(
+    fRow(FIELD.COLOR, 'Renk', selectDisplay(colorPreview, state.focusIndex === FIELD.COLOR, pal))
+  );
 
   lines.push(boxLine('', W));
 
@@ -317,9 +356,21 @@ export async function showPanel(): Promise<PanelResult | null> {
         draw(false);
         return;
       }
-      if (key.name === 'escape') { state.editing = false; draw(false); return; }
-      if (key.name === 'backspace') { state.editBuffer = state.editBuffer.slice(0, -1); draw(true); return; }
-      if (key.ctrl === true && key.name === 'u') { state.editBuffer = ''; draw(true); return; }
+      if (key.name === 'escape') {
+        state.editing = false;
+        draw(false);
+        return;
+      }
+      if (key.name === 'backspace') {
+        state.editBuffer = state.editBuffer.slice(0, -1);
+        draw(true);
+        return;
+      }
+      if (key.ctrl === true && key.name === 'u') {
+        state.editBuffer = '';
+        draw(true);
+        return;
+      }
       if (str !== undefined && str !== '' && key.ctrl !== true && key.meta !== true) {
         state.editBuffer += str;
         draw(true);
@@ -330,23 +381,33 @@ export async function showPanel(): Promise<PanelResult | null> {
       const nav = getPanelNav(state);
       const idx = nav.indexOf(state.focusIndex);
 
-      if (key.name === 'escape') { done(null); return; }
+      if (key.name === 'escape') {
+        done(null);
+        return;
+      }
 
       if (key.name === 'up' || (key.name === 'tab' && key.shift === true)) {
         if (idx > 0) state.focusIndex = nav[idx - 1];
-        draw(false); return;
+        draw(false);
+        return;
       }
       if (key.name === 'down' || key.name === 'tab') {
         if (idx < nav.length - 1) state.focusIndex = nav[idx + 1];
-        draw(false); return;
+        draw(false);
+        return;
       }
 
       if (key.name === 'left' || key.name === 'right') {
         const d = key.name === 'right' ? 1 : -1;
         panelCycle(d);
-        draw(false); return;
+        draw(false);
+        return;
       }
-      if (key.name === 'space') { panelCycle(1); draw(false); return; }
+      if (key.name === 'space') {
+        panelCycle(1);
+        draw(false);
+        return;
+      }
 
       // P key → load preset
       if (str === 'p' || str === 'P') {
@@ -382,9 +443,7 @@ export async function showPanel(): Promise<PanelResult | null> {
 
       // G key → GitHub browser
       if (str === 'g' || str === 'G') {
-        const token = state.hasToken && state.token !== ''
-          ? state.token
-          : loadConfig().githubToken;
+        const token = state.hasToken && state.token !== '' ? state.token : loadConfig().githubToken;
         if (token === '') {
           state.error = 'GitHub token gerekli';
           draw(false);
@@ -392,38 +451,54 @@ export async function showPanel(): Promise<PanelResult | null> {
         }
         // Temporarily teardown panel keypress to give control to browser
         teardown();
-        showGitHubBrowser(token).then((result) => {
-          if (result !== null) {
-            state.repoUrl = result.cloneUrl;
-          }
-          // Re-attach panel keypress
-          const reattached = attachKeypress((s, k) => {
-            state.error = '';
-            if (state.editing) {
-              panelEdit(s, k);
-            } else {
-              panelNav(s, k);
+        showGitHubBrowser(token)
+          .then((result) => {
+            if (result !== null) {
+              state.repoUrl = result.cloneUrl;
             }
+            // Re-attach panel keypress
+            const reattached = attachKeypress((s, k) => {
+              state.error = '';
+              if (state.editing) {
+                panelEdit(s, k);
+              } else {
+                panelNav(s, k);
+              }
+            });
+            // Replace teardown reference
+            Object.assign({ teardown: reattached.teardown });
+            draw(false);
+          })
+          .catch(() => {
+            draw(false);
           });
-          // Replace teardown reference
-          Object.assign({ teardown: reattached.teardown });
-          draw(false);
-        }).catch(() => {
-          draw(false);
-        });
         return;
       }
 
-      if (key.name === 'return') { panelEnter(); return; }
+      if (key.name === 'return') {
+        panelEnter();
+        return;
+      }
     }
 
     function panelCycle(d: number): void {
       switch (state.focusIndex) {
-        case FIELD.HAS_TOKEN: state.hasToken = !state.hasToken; break;
-        case FIELD.LAYOUT: state.layoutIndex = (state.layoutIndex + d + LAYOUTS.length) % LAYOUTS.length; break;
-        case FIELD.PANES: state.panesIndex = (state.panesIndex + d + PANE_OPTIONS.length) % PANE_OPTIONS.length; break;
-        case FIELD.CLEANUP: state.cleanupIndex = (state.cleanupIndex + d + CLEANUP_OPTIONS.length) % CLEANUP_OPTIONS.length; break;
-        case FIELD.COLOR: state.colorIndex = (state.colorIndex + d + COLOR_OPTIONS.length) % COLOR_OPTIONS.length; break;
+        case FIELD.HAS_TOKEN:
+          state.hasToken = !state.hasToken;
+          break;
+        case FIELD.LAYOUT:
+          state.layoutIndex = (state.layoutIndex + d + LAYOUTS.length) % LAYOUTS.length;
+          break;
+        case FIELD.PANES:
+          state.panesIndex = (state.panesIndex + d + PANE_OPTIONS.length) % PANE_OPTIONS.length;
+          break;
+        case FIELD.CLEANUP:
+          state.cleanupIndex =
+            (state.cleanupIndex + d + CLEANUP_OPTIONS.length) % CLEANUP_OPTIONS.length;
+          break;
+        case FIELD.COLOR:
+          state.colorIndex = (state.colorIndex + d + COLOR_OPTIONS.length) % COLOR_OPTIONS.length;
+          break;
       }
     }
 
@@ -431,21 +506,32 @@ export async function showPanel(): Promise<PanelResult | null> {
       if (state.focusIndex === FIELD.TOKEN || state.focusIndex === FIELD.REPO) {
         state.editing = true;
         state.editBuffer = state.focusIndex === FIELD.TOKEN ? state.token : state.repoUrl;
-        draw(true); return;
+        draw(true);
+        return;
       }
-      if (state.focusIndex === FIELD.HAS_TOKEN) { state.hasToken = !state.hasToken; draw(false); return; }
+      if (state.focusIndex === FIELD.HAS_TOKEN) {
+        state.hasToken = !state.hasToken;
+        draw(false);
+        return;
+      }
 
       if (state.focusIndex === FIELD.SUBMIT) {
         if (state.repoUrl.trim() === '') {
           state.error = 'Repository URL gerekli';
           state.focusIndex = FIELD.REPO;
-          draw(false); return;
+          draw(false);
+          return;
         }
         const url = state.repoUrl.trim();
-        if (!url.includes('github.com') && !url.includes('gitlab.com') && !url.includes('bitbucket.org')) {
+        if (
+          !url.includes('github.com') &&
+          !url.includes('gitlab.com') &&
+          !url.includes('bitbucket.org')
+        ) {
           state.error = 'Geçerli bir Git URL girin';
           state.focusIndex = FIELD.REPO;
-          draw(false); return;
+          draw(false);
+          return;
         }
         if (state.hasToken && state.token !== '') {
           setGithubToken(state.token);
@@ -457,7 +543,10 @@ export async function showPanel(): Promise<PanelResult | null> {
         saveConfig(cfg);
 
         // Support multiple repos separated by comma
-        const urls = url.split(',').map((u) => u.trim()).filter((u) => u !== '');
+        const urls = url
+          .split(',')
+          .map((u) => u.trim())
+          .filter((u) => u !== '');
 
         done({
           token: state.hasToken && state.token !== '' ? state.token : null,
@@ -488,9 +577,24 @@ export interface BranchSelectionResult {
 }
 
 const RANDOM_NAMES = [
-  'Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Zeta',
-  'Nova', 'Orion', 'Vega', 'Atlas', 'Comet', 'Pulsar',
-  'Spark', 'Blaze', 'Storm', 'Frost', 'Lunar', 'Solar',
+  'Alpha',
+  'Beta',
+  'Gamma',
+  'Delta',
+  'Epsilon',
+  'Zeta',
+  'Nova',
+  'Orion',
+  'Vega',
+  'Atlas',
+  'Comet',
+  'Pulsar',
+  'Spark',
+  'Blaze',
+  'Storm',
+  'Frost',
+  'Lunar',
+  'Solar',
 ];
 
 function pickRandomNames(count: number): string[] {
@@ -572,9 +676,10 @@ function renderBranchForm(
   lines.push(renderButton('ONAYLA', state.focusIndex === submitIdx, W, pal));
   lines.push(boxLine('', W));
   lines.push(boxMid(W));
-  const help = state.editing || state.editingCommand
-    ? 'Yazın...  Enter Onayla  Esc İptal  Ctrl+U Temizle'
-    : '↑↓ Gezin  ←→ Branch  N İsim  C Komut  Enter Onayla  Esc Çıkış';
+  const help =
+    state.editing || state.editingCommand
+      ? 'Yazın...  Enter Onayla  Esc İptal  Ctrl+U Temizle'
+      : '↑↓ Gezin  ←→ Branch  N İsim  C Komut  Enter Onayla  Esc Çıkış';
   lines.push(boxLine('  ' + chalk.dim(help), W));
   lines.push(boxBottom(W));
 
@@ -619,11 +724,24 @@ export async function showBranchSelection(
           const val = state.editBuffer.trim();
           state.paneNames[state.focusIndex] = val !== '' ? val : randomNames[state.focusIndex];
           state.editing = false;
-          draw(false); return;
+          draw(false);
+          return;
         }
-        if (key.name === 'escape') { state.editing = false; draw(false); return; }
-        if (key.name === 'backspace') { state.editBuffer = state.editBuffer.slice(0, -1); draw(true); return; }
-        if (key.ctrl === true && key.name === 'u') { state.editBuffer = ''; draw(true); return; }
+        if (key.name === 'escape') {
+          state.editing = false;
+          draw(false);
+          return;
+        }
+        if (key.name === 'backspace') {
+          state.editBuffer = state.editBuffer.slice(0, -1);
+          draw(true);
+          return;
+        }
+        if (key.ctrl === true && key.name === 'u') {
+          state.editBuffer = '';
+          draw(true);
+          return;
+        }
         if (str !== undefined && str !== '' && key.ctrl !== true && key.meta !== true) {
           state.editBuffer += str;
           draw(true);
@@ -636,11 +754,24 @@ export async function showBranchSelection(
         if (key.name === 'return') {
           state.startupCommands[state.focusIndex] = state.editBuffer.trim();
           state.editingCommand = false;
-          draw(false); return;
+          draw(false);
+          return;
         }
-        if (key.name === 'escape') { state.editingCommand = false; draw(false); return; }
-        if (key.name === 'backspace') { state.editBuffer = state.editBuffer.slice(0, -1); draw(true); return; }
-        if (key.ctrl === true && key.name === 'u') { state.editBuffer = ''; draw(true); return; }
+        if (key.name === 'escape') {
+          state.editingCommand = false;
+          draw(false);
+          return;
+        }
+        if (key.name === 'backspace') {
+          state.editBuffer = state.editBuffer.slice(0, -1);
+          draw(true);
+          return;
+        }
+        if (key.ctrl === true && key.name === 'u') {
+          state.editBuffer = '';
+          draw(true);
+          return;
+        }
         if (str !== undefined && str !== '' && key.ctrl !== true && key.meta !== true) {
           state.editBuffer += str;
           draw(true);
@@ -658,25 +789,29 @@ export async function showBranchSelection(
       // Navigation
       if (key.name === 'up' || (key.name === 'tab' && key.shift === true)) {
         if (state.focusIndex > 0) state.focusIndex--;
-        draw(false); return;
+        draw(false);
+        return;
       }
       if (key.name === 'down' || key.name === 'tab') {
         if (state.focusIndex < submitIdx) state.focusIndex++;
-        draw(false); return;
+        draw(false);
+        return;
       }
 
       // N key → edit name
       if ((str === 'n' || str === 'N') && state.focusIndex < paneCount) {
         state.editing = true;
         state.editBuffer = state.paneNames[state.focusIndex];
-        draw(true); return;
+        draw(true);
+        return;
       }
 
       // C key → edit startup command
       if ((str === 'c' || str === 'C') && state.focusIndex < paneCount) {
         state.editingCommand = true;
         state.editBuffer = state.startupCommands[state.focusIndex];
-        draw(true); return;
+        draw(true);
+        return;
       }
 
       // ←→ cycle branch
@@ -687,13 +822,15 @@ export async function showBranchSelection(
           state.branchIndices[state.focusIndex] =
             (cur + d + availableBranches.length) % availableBranches.length;
         }
-        draw(false); return;
+        draw(false);
+        return;
       }
 
       if (key.name === 'space' && state.focusIndex < paneCount) {
         const cur = state.branchIndices[state.focusIndex];
         state.branchIndices[state.focusIndex] = (cur + 1) % availableBranches.length;
-        draw(false); return;
+        draw(false);
+        return;
       }
 
       // Enter

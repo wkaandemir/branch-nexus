@@ -10,11 +10,7 @@ import {
 } from '../core/presets.js';
 import { type PresetConfig } from '../types/index.js';
 
-export function presetCommand(
-  action?: string,
-  name?: string,
-  extra?: string
-): void {
+export function presetCommand(action?: string, name?: string, extra?: string): void {
   switch (action) {
     case 'list': {
       const presets = loadPresets();
@@ -62,7 +58,9 @@ export function presetCommand(
         const preset = createPresetFromCurrentConfig(name);
         console.log(chalk.green(`\n✓ Preset "${name}" mevcut ayarlardan oluşturuldu.`));
         console.log(
-          chalk.dim(`  layout: ${preset.layout}, panes: ${preset.panes}, cleanup: ${preset.cleanup}`)
+          chalk.dim(
+            `  layout: ${preset.layout}, panes: ${preset.panes}, cleanup: ${preset.cleanup}`
+          )
         );
         console.log();
       }
@@ -79,7 +77,9 @@ export function presetCommand(
         const preset = applyPreset(name);
         console.log(chalk.green(`\n✓ Preset "${name}" yüklendi.`));
         console.log(
-          chalk.dim(`  layout: ${preset.layout}, panes: ${preset.panes}, cleanup: ${preset.cleanup}`)
+          chalk.dim(
+            `  layout: ${preset.layout}, panes: ${preset.panes}, cleanup: ${preset.cleanup}`
+          )
         );
         console.log();
       } catch (error) {
@@ -114,7 +114,9 @@ export function presetCommand(
 
       try {
         renamePreset(name, extra);
-        console.log(chalk.green(`\n✓ Preset "${name}" → "${extra}" olarak yeniden adlandırıldı.\n`));
+        console.log(
+          chalk.green(`\n✓ Preset "${name}" → "${extra}" olarak yeniden adlandırıldı.\n`)
+        );
       } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
         console.error(chalk.red(`\n${msg}\n`));
@@ -125,7 +127,7 @@ export function presetCommand(
 
     default:
       console.log(chalk.bold('\n📋 Preset Komutları\n'));
-      console.log('  branchnexus preset list              Kayıtlı preset\'leri listele');
+      console.log("  branchnexus preset list              Kayıtlı preset'leri listele");
       console.log('  branchnexus preset save <isim>       Mevcut ayarlardan preset kaydet');
       console.log('  branchnexus preset load <isim>       Preset yükle');
       console.log('  branchnexus preset delete <isim>     Preset sil');

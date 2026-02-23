@@ -110,7 +110,12 @@ export async function orchestrate(request: OrchestrationRequest): Promise<Orches
     const paneBranches = request.displayBranches ?? sorted.map((w) => w.branch);
 
     const tmuxCommands = buildLayoutCommands(
-      sessionName, request.layout, panePaths, request.colorTheme, paneBranches, request.paneNames,
+      sessionName,
+      request.layout,
+      panePaths,
+      request.colorTheme,
+      paneBranches,
+      request.paneNames,
       request.startupCommands
     );
 

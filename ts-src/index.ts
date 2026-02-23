@@ -30,7 +30,13 @@ export { WorktreeManager } from './git/worktree.js';
 export { listLocalBranches, type BranchListResult } from './git/branch.js';
 
 export { buildLayoutCommands, validateLayout } from './tmux/layouts.js';
-export { startSession, killSession, sessionExists, listSessions, attachSession } from './tmux/session.js';
+export {
+  startSession,
+  killSession,
+  sessionExists,
+  listSessions,
+  attachSession,
+} from './tmux/session.js';
 
 export { detectPlatform, Platform, hasTmux, expandHomeDir } from './runtime/platform.js';
 export { listDistributions, buildWslCommand, toWslPath } from './runtime/wsl.js';

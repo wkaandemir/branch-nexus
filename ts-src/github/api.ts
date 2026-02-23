@@ -22,7 +22,9 @@ export type RepoVisibility = 'public' | 'private' | 'not_found' | 'error';
  */
 export function parseGitHubUrl(url: string): ParsedGitHubUrl | null {
   // HTTPS: https://github.com/owner/repo.git or https://token@github.com/owner/repo
-  const httpsMatch = url.match(/^https?:\/\/(?:[^@]+@)?github\.com\/([^/]+)\/([^/\s]+?)(?:\.git)?$/);
+  const httpsMatch = url.match(
+    /^https?:\/\/(?:[^@]+@)?github\.com\/([^/]+)\/([^/\s]+?)(?:\.git)?$/
+  );
   if (httpsMatch) {
     return { owner: httpsMatch[1], repo: httpsMatch[2] };
   }

@@ -87,9 +87,7 @@ describe('session types', () => {
 
   describe('createSessionSnapshot', () => {
     it('should create a session snapshot', () => {
-      const terminals = [
-        createTerminalSnapshot('t1', 'Alpha', 'native', '/repo', 'main'),
-      ];
+      const terminals = [createTerminalSnapshot('t1', 'Alpha', 'native', '/repo', 'main')];
       const snap = createSessionSnapshot('grid', 2, terminals, 't1');
 
       expect(snap.layout).toBe('grid');

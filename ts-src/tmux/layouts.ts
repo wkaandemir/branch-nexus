@@ -57,8 +57,14 @@ export function buildLayoutCommands(
     ['tmux', 'set-option', '-t', sessionName, 'window-status-current-format', ''],
     // Pane border labels with blinking indicator for active pane
     ['tmux', 'set-option', '-t', sessionName, 'pane-border-status', 'top'],
-    ['tmux', 'set-option', '-t', sessionName, 'pane-border-format',
-      `#{?pane_active,#[fg=${tmuxColor}#,blink] ● #[noblink#,bold]#{pane_title} #[default],#[fg=grey] ○ #{pane_title} #[default]}`],
+    [
+      'tmux',
+      'set-option',
+      '-t',
+      sessionName,
+      'pane-border-format',
+      `#{?pane_active,#[fg=${tmuxColor}#,blink] ● #[noblink#,bold]#{pane_title} #[default],#[fg=grey] ○ #{pane_title} #[default]}`,
+    ],
   ];
 
   function paneTitle(index: number): string {
@@ -69,10 +75,7 @@ export function buildLayoutCommands(
   }
 
   // Set pane title for first pane (pane 0)
-  commands.push([
-    'tmux', 'select-pane', '-t', `${sessionName}:0.0`,
-    '-T', paneTitle(0),
-  ]);
+  commands.push(['tmux', 'select-pane', '-t', `${sessionName}:0.0`, '-T', paneTitle(0)]);
 
   for (let index = 1; index < panes; index++) {
     let splitFlag: string;
@@ -95,8 +98,12 @@ export function buildLayoutCommands(
     ]);
 
     commands.push([
-      'tmux', 'select-pane', '-t', `${sessionName}:0.${index}`,
-      '-T', paneTitle(index),
+      'tmux',
+      'select-pane',
+      '-t',
+      `${sessionName}:0.${index}`,
+      '-T',
+      paneTitle(index),
     ]);
   }
 
@@ -127,9 +134,7 @@ export function buildLayoutCommands(
     for (let i = 0; i < panes; i++) {
       const cmd = startupCommands[i];
       if (cmd !== undefined && cmd.trim() !== '') {
-        commands.push([
-          'tmux', 'send-keys', '-t', `${sessionName}:0.${i}`, cmd.trim(), 'Enter',
-        ]);
+        commands.push(['tmux', 'send-keys', '-t', `${sessionName}:0.${i}`, cmd.trim(), 'Enter']);
       }
     }
   }

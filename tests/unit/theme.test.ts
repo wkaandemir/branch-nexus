@@ -257,7 +257,10 @@ describe('theme', () => {
       // Bottom border: ╚ + 60 horizontal chars + ╝
       const bottomLine = lines[lines.length - 1];
       // Count the horizontal chars between corners
-      const horizontalCount = bottomLine.slice(1, -1).split('').filter((c) => c === '═').length;
+      const horizontalCount = bottomLine
+        .slice(1, -1)
+        .split('')
+        .filter((c) => c === '═').length;
       expect(horizontalCount).toBe(60);
     });
 
@@ -265,7 +268,10 @@ describe('theme', () => {
       const result = box('T', ['x'], 40);
       const lines = result.split('\n');
       const bottomLine = lines[lines.length - 1];
-      const horizontalCount = bottomLine.slice(1, -1).split('').filter((c) => c === '═').length;
+      const horizontalCount = bottomLine
+        .slice(1, -1)
+        .split('')
+        .filter((c) => c === '═').length;
       expect(horizontalCount).toBe(40);
     });
 

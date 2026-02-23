@@ -17,7 +17,7 @@ export async function statusCommand(): Promise<void> {
   console.log();
 
   // Active tmux sessions
-  console.log(chalk.bold('tmux Session\'lar:'));
+  console.log(chalk.bold("tmux Session'lar:"));
   const sessions = await listSessions(distribution);
   const bnSessions = sessions.filter((s) => s.startsWith('branchnexus'));
 
@@ -31,7 +31,7 @@ export async function statusCommand(): Promise<void> {
   console.log();
 
   // Managed worktrees
-  console.log(chalk.bold('Worktree\'ler:'));
+  console.log(chalk.bold("Worktree'ler:"));
   const root = config.defaultRoot !== '' ? config.defaultRoot : expandHomeDir('~');
   const bnxDir = join(root, '.bnx');
 
@@ -67,7 +67,7 @@ export async function statusCommand(): Promise<void> {
   console.log();
 
   // Presets
-  console.log(chalk.bold('Preset\'ler:'));
+  console.log(chalk.bold("Preset'ler:"));
   const presets = loadPresets();
   const presetEntries = Object.entries(presets);
 
@@ -84,7 +84,7 @@ export async function statusCommand(): Promise<void> {
   console.log();
 
   // Command hooks
-  console.log(chalk.bold('Hook\'lar:'));
+  console.log(chalk.bold("Hook'lar:"));
   const hooks = config.commandHooks;
   const hookEntries = Object.entries(hooks);
 
@@ -105,11 +105,7 @@ export async function statusCommand(): Promise<void> {
   const hasToken = config.githubToken !== '';
   const envToken = process.env.BRANCHNEXUS_GH_TOKEN;
   const tokenSource = envToken !== undefined && envToken !== '' ? ' (env)' : ' (config)';
-  console.log(
-    hasToken
-      ? chalk.green(`  ● Tanımlı${tokenSource}`)
-      : chalk.dim('  ○ Tanımlı değil')
-  );
+  console.log(hasToken ? chalk.green(`  ● Tanımlı${tokenSource}`) : chalk.dim('  ○ Tanımlı değil'));
   console.log();
 
   // General settings

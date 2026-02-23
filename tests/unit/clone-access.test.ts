@@ -63,9 +63,7 @@ describe('checkRepositoryAccess', () => {
   });
 
   it('should allow private repos when token is available', async () => {
-    mockLoadConfig.mockReturnValue({ githubToken: 'ghp_test123' } as ReturnType<
-      typeof loadConfig
-    >);
+    mockLoadConfig.mockReturnValue({ githubToken: 'ghp_test123' } as ReturnType<typeof loadConfig>);
 
     // First call (unauthenticated): 404 → private
     // Second call (authenticated): 200 → private: true

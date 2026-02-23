@@ -25,7 +25,7 @@ export async function attachCommand(sessionName?: string): Promise<void> {
   if (sessionName !== undefined && sessionName !== '') {
     if (!bnSessions.includes(sessionName)) {
       console.error(chalk.red(`\nSession "${sessionName}" bulunamadı.\n`));
-      console.log(chalk.dim('Aktif session\'lar:'));
+      console.log(chalk.dim("Aktif session'lar:"));
       for (const s of bnSessions) {
         console.log(chalk.dim(`  - ${s}`));
       }
@@ -37,7 +37,7 @@ export async function attachCommand(sessionName?: string): Promise<void> {
     target = bnSessions[0];
   } else {
     const selected = await p.select({
-      message: 'Hangi session\'a bağlanılsın?',
+      message: "Hangi session'a bağlanılsın?",
       options: bnSessions.map((s) => ({ value: s, label: s })),
     });
 

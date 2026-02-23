@@ -220,7 +220,9 @@ export async function runCommand(options: RunOptions): Promise<void> {
           return;
         } catch (error) {
           s.stop('Geri yükleme başarısız, yeni oturum başlatılıyor');
-          logger.warn(`Session restore failed: ${error instanceof Error ? error.message : String(error)}`);
+          logger.warn(
+            `Session restore failed: ${error instanceof Error ? error.message : String(error)}`
+          );
         }
       }
     }
@@ -348,9 +350,7 @@ export async function runCommand(options: RunOptions): Promise<void> {
       }
 
       for (const branch of branchResult.branches) {
-        const key = localRepoPaths.length > 1
-          ? `[${basename(rPath)}] ${branch}`
-          : branch;
+        const key = localRepoPaths.length > 1 ? `[${basename(rPath)}] ${branch}` : branch;
         allBranches.push(key);
         branchRepoMap.set(key, rPath);
       }
@@ -468,7 +468,7 @@ export async function runCommand(options: RunOptions): Promise<void> {
 
     if (!noHooks && hookCommands.length > 0) {
       const hookSpinner = p.spinner();
-      hookSpinner.start('Hook\'lar çalıştırılıyor...');
+      hookSpinner.start("Hook'lar çalıştırılıyor...");
 
       const runner = new HookRunner({ timeoutSeconds: 60 });
       let totalFailures = 0;
@@ -483,7 +483,7 @@ export async function runCommand(options: RunOptions): Promise<void> {
       if (totalFailures > 0) {
         hookSpinner.stop(chalk.yellow(`Hook'lar tamamlandı (${totalFailures} hata)`));
       } else {
-        hookSpinner.stop('Hook\'lar tamamlandı');
+        hookSpinner.stop("Hook'lar tamamlandı");
       }
     }
 

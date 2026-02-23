@@ -24,9 +24,7 @@ function makeTerminal(overrides: Partial<SessionTerminalSnapshot> = {}): Session
   };
 }
 
-function makeSnapshot(
-  overrides: Partial<RuntimeSessionSnapshot> = {}
-): RuntimeSessionSnapshot {
+function makeSnapshot(overrides: Partial<RuntimeSessionSnapshot> = {}): RuntimeSessionSnapshot {
   return {
     layout: 'grid',
     templateCount: 4,
@@ -431,10 +429,7 @@ describe('session', () => {
 
     it('should return null if any terminal has empty terminalId', () => {
       const raw = makeSnapshot({
-        terminals: [
-          makeTerminal({ terminalId: 'a' }),
-          makeTerminal({ terminalId: '' }),
-        ],
+        terminals: [makeTerminal({ terminalId: 'a' }), makeTerminal({ terminalId: '' })],
       });
       expect(parseRuntimeSnapshot(raw)).toBeNull();
     });
@@ -475,9 +470,7 @@ describe('session', () => {
 
       it('should not call checkDirty or cleanup', async () => {
         vi.mocked(mockManager.getCleanupPolicy).mockReturnValue('persistent');
-        vi.mocked(mockManager.getManaged).mockReturnValue([
-          makeManagedWorktree({ path: '/wt/a' }),
-        ]);
+        vi.mocked(mockManager.getManaged).mockReturnValue([makeManagedWorktree({ path: '/wt/a' })]);
 
         const handler = new SessionCleanupHandler(mockManager, promptFn);
         await handler.handleExit();
@@ -519,9 +512,7 @@ describe('session', () => {
 
       it('should call cleanup without selected filter', async () => {
         vi.mocked(mockManager.getCleanupPolicy).mockReturnValue('session');
-        vi.mocked(mockManager.getManaged).mockReturnValue([
-          makeManagedWorktree({ path: '/wt/x' }),
-        ]);
+        vi.mocked(mockManager.getManaged).mockReturnValue([makeManagedWorktree({ path: '/wt/x' })]);
         vi.mocked(mockManager.checkDirty).mockResolvedValue(false);
         vi.mocked(mockManager.cleanup).mockResolvedValue(['/wt/x']);
 
@@ -619,9 +610,7 @@ describe('session', () => {
 
         vi.mocked(mockManager.getCleanupPolicy).mockReturnValue('session');
         vi.mocked(mockManager.getManaged).mockReturnValue([dirty, clean]);
-        vi.mocked(mockManager.checkDirty)
-          .mockResolvedValueOnce(true)
-          .mockResolvedValueOnce(false);
+        vi.mocked(mockManager.checkDirty).mockResolvedValueOnce(true).mockResolvedValueOnce(false);
         promptFn.mockResolvedValue(ExitChoice.PRESERVE);
         vi.mocked(mockManager.cleanup).mockResolvedValue(['/wt/clean']);
 
@@ -684,9 +673,7 @@ describe('session', () => {
 
         vi.mocked(mockManager.getCleanupPolicy).mockReturnValue('session');
         vi.mocked(mockManager.getManaged).mockReturnValue([dirty, clean]);
-        vi.mocked(mockManager.checkDirty)
-          .mockResolvedValueOnce(true)
-          .mockResolvedValueOnce(false);
+        vi.mocked(mockManager.checkDirty).mockResolvedValueOnce(true).mockResolvedValueOnce(false);
         promptFn.mockResolvedValue(ExitChoice.CLEAN);
         vi.mocked(mockManager.cleanup).mockResolvedValue(['/wt/dirty', '/wt/clean']);
 

@@ -20,12 +20,12 @@ export async function promptCleanup(dirtyPaths: string[]): Promise<ExitChoice> {
       {
         value: ExitChoice.PRESERVE,
         label: 'Koruyarak Çık',
-        hint: 'Dirty worktree\'ler korunur, temizler silinir',
+        hint: "Dirty worktree'ler korunur, temizler silinir",
       },
       {
         value: ExitChoice.CLEAN,
         label: 'Temizleyerek Çık',
-        hint: 'Tüm worktree\'ler silinir (değişiklikler kaybolur!)',
+        hint: "Tüm worktree'ler silinir (değişiklikler kaybolur!)",
       },
       {
         value: ExitChoice.CANCEL,

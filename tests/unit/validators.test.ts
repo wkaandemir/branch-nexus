@@ -272,15 +272,15 @@ describe('validators', () => {
     });
 
     it('should reject panes below minimum', () => {
-      expect(() =>
-        validatePresetConfig({ layout: 'grid', panes: 1, cleanup: 'session' })
-      ).toThrow(ZodError);
+      expect(() => validatePresetConfig({ layout: 'grid', panes: 1, cleanup: 'session' })).toThrow(
+        ZodError
+      );
     });
 
     it('should reject panes above maximum', () => {
-      expect(() =>
-        validatePresetConfig({ layout: 'grid', panes: 7, cleanup: 'session' })
-      ).toThrow(ZodError);
+      expect(() => validatePresetConfig({ layout: 'grid', panes: 7, cleanup: 'session' })).toThrow(
+        ZodError
+      );
     });
 
     it('should reject non-integer panes', () => {
@@ -296,9 +296,9 @@ describe('validators', () => {
     });
 
     it('should reject an invalid cleanup policy', () => {
-      expect(() =>
-        validatePresetConfig({ layout: 'grid', panes: 4, cleanup: 'never' })
-      ).toThrow(ZodError);
+      expect(() => validatePresetConfig({ layout: 'grid', panes: 4, cleanup: 'never' })).toThrow(
+        ZodError
+      );
     });
 
     it('should reject missing required fields', () => {

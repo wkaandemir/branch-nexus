@@ -161,9 +161,7 @@ export async function showGitHubBrowser(token: string): Promise<GitHubBrowserRes
     function draw(): void {
       process.stdout.write(first ? '\x1B[2J\x1B[H' : '\x1B[H');
       first = false;
-      process.stdout.write(
-        state.filtering ? '\x1B[?25h' : '\x1B[?25l'
-      );
+      process.stdout.write(state.filtering ? '\x1B[?25h' : '\x1B[?25l');
       process.stdout.write(renderBrowser(state, pal) + '\x1B[J\n');
     }
 
@@ -194,9 +192,7 @@ export async function showGitHubBrowser(token: string): Promise<GitHubBrowserRes
         state.filteredRepos = [...state.repos];
       } else {
         const lower = state.filterText.toLowerCase();
-        state.filteredRepos = state.repos.filter((r) =>
-          r.fullName.toLowerCase().includes(lower)
-        );
+        state.filteredRepos = state.repos.filter((r) => r.fullName.toLowerCase().includes(lower));
       }
       state.selectedIndex = 0;
       state.scrollOffset = 0;
@@ -304,9 +300,7 @@ export async function showGitHubBrowser(token: string): Promise<GitHubBrowserRes
         state.loading = false;
 
         // Cache repos
-        updateGithubRepoCache(
-          repos.map((r) => ({ full_name: r.fullName, clone_url: r.cloneUrl }))
-        );
+        updateGithubRepoCache(repos.map((r) => ({ full_name: r.fullName, clone_url: r.cloneUrl })));
 
         draw();
       })

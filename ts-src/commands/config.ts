@@ -1,6 +1,12 @@
 import chalk from 'chalk';
 import { readFileSync } from 'node:fs';
-import { loadConfig, saveConfig, setConfigValue, resetConfig, getConfigPath } from '../core/config.js';
+import {
+  loadConfig,
+  saveConfig,
+  setConfigValue,
+  resetConfig,
+  getConfigPath,
+} from '../core/config.js';
 import { AppConfigSchema } from '../types/index.js';
 
 export function configCommand(action?: string, key?: string, value?: string): void {

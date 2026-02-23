@@ -118,7 +118,11 @@ describe('PresetConfigSchema', () => {
   });
 
   it('should parse valid preset', () => {
-    const result = PresetConfigSchema.parse({ layout: 'horizontal', panes: 3, cleanup: 'persistent' });
+    const result = PresetConfigSchema.parse({
+      layout: 'horizontal',
+      panes: 3,
+      cleanup: 'persistent',
+    });
     expect(result.layout).toBe('horizontal');
     expect(result.panes).toBe(3);
     expect(result.cleanup).toBe('persistent');
@@ -130,13 +134,21 @@ describe('PresetConfigSchema', () => {
   });
 
   it('should reject invalid pane count in preset', () => {
-    expect(() => PresetConfigSchema.parse({ layout: 'grid', panes: 0, cleanup: 'session' })).toThrow();
-    expect(() => PresetConfigSchema.parse({ layout: 'grid', panes: 7, cleanup: 'session' })).toThrow();
+    expect(() =>
+      PresetConfigSchema.parse({ layout: 'grid', panes: 0, cleanup: 'session' })
+    ).toThrow();
+    expect(() =>
+      PresetConfigSchema.parse({ layout: 'grid', panes: 7, cleanup: 'session' })
+    ).toThrow();
   });
 
   it('should accept boundary pane counts', () => {
-    expect(PresetConfigSchema.parse({ layout: 'grid', panes: 2, cleanup: 'session' }).panes).toBe(2);
-    expect(PresetConfigSchema.parse({ layout: 'grid', panes: 6, cleanup: 'session' }).panes).toBe(6);
+    expect(PresetConfigSchema.parse({ layout: 'grid', panes: 2, cleanup: 'session' }).panes).toBe(
+      2
+    );
+    expect(PresetConfigSchema.parse({ layout: 'grid', panes: 6, cleanup: 'session' }).panes).toBe(
+      6
+    );
   });
 });
 

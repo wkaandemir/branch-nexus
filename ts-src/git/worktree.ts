@@ -91,7 +91,15 @@ export class WorktreeManager {
 
       // Remove stale worktree from a previous run and continue
       logger.warn(`Removing stale worktree at ${existingPath}`);
-      const removeCmd = ['git', '-C', repoPath, 'worktree', 'remove', '--force', this.commandPath(existingPath)];
+      const removeCmd = [
+        'git',
+        '-C',
+        repoPath,
+        'worktree',
+        'remove',
+        '--force',
+        this.commandPath(existingPath),
+      ];
       try {
         if (distribution !== undefined && distribution !== '') {
           await runCommandViaWSL(distribution, removeCmd);

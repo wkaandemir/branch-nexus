@@ -20,7 +20,9 @@ async function cleanupWorktreeDir(basePath: string, distribution?: string): Prom
 
   for (const repoDir of repoDirs) {
     const repoWorktreeDir = join(basePath, repoDir.name);
-    const paneDirs = readdirSync(repoWorktreeDir, { withFileTypes: true }).filter((d) => d.isDirectory());
+    const paneDirs = readdirSync(repoWorktreeDir, { withFileTypes: true }).filter((d) =>
+      d.isDirectory()
+    );
 
     for (const paneDir of paneDirs) {
       const panePath = join(repoWorktreeDir, paneDir.name);
@@ -34,7 +36,9 @@ async function cleanupWorktreeDir(basePath: string, distribution?: string): Prom
       // Find the parent repo to run git worktree remove against it
       const cmd = ['git', '-C', panePath, 'worktree', 'list', '--porcelain'];
       try {
-        const result = distribution ? await runCommand(['wsl', '-d', distribution, ...cmd]) : await runCommand(cmd);
+        const result = distribution
+          ? await runCommand(['wsl', '-d', distribution, ...cmd])
+          : await runCommand(cmd);
 
         // Extract the main worktree path (first "worktree" entry)
         let mainRepoPath = '';
@@ -59,7 +63,9 @@ async function cleanupWorktreeDir(basePath: string, distribution?: string): Prom
           }
         }
       } catch (error) {
-        logger.warn(`Error cleaning worktree ${panePath}: ${error instanceof Error ? error.message : String(error)}`);
+        logger.warn(
+          `Error cleaning worktree ${panePath}: ${error instanceof Error ? error.message : String(error)}`
+        );
       }
     }
 
@@ -94,7 +100,8 @@ async function cleanupWorktreeDir(basePath: string, distribution?: string): Prom
 async function cleanupWorktrees(distribution?: string): Promise<number> {
   const config = loadConfig();
   const root = config.defaultRoot !== '' ? config.defaultRoot : expandHomeDir('~');
-  const workspaceRoot = config.defaultRoot !== '' ? config.defaultRoot : expandHomeDir('~/workspace');
+  const workspaceRoot =
+    config.defaultRoot !== '' ? config.defaultRoot : expandHomeDir('~/workspace');
 
   // Clean both new (.bnx) and legacy (branchnexus-worktrees) paths
   const paths = [
@@ -137,7 +144,7 @@ export async function killCommand(sessionName?: string): Promise<void> {
   if (sessionName !== undefined && sessionName !== '') {
     if (!bnSessions.includes(sessionName)) {
       console.error(chalk.red(`\nSession "${sessionName}" bulunamadı.\n`));
-      console.log(chalk.dim('Aktif session\'lar:'));
+      console.log(chalk.dim("Aktif session'lar:"));
       for (const s of bnSessions) {
         console.log(chalk.dim(`  - ${s}`));
       }

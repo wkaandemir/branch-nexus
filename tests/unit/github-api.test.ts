@@ -100,11 +100,7 @@ describe('GitHubClient', () => {
         .mockResolvedValueOnce({
           ok: true,
           json: () =>
-            Promise.resolve([
-              { name: 'main' },
-              { name: 'develop' },
-              { name: 'feature/test' },
-            ]),
+            Promise.resolve([{ name: 'main' }, { name: 'develop' }, { name: 'feature/test' }]),
         })
         .mockResolvedValueOnce({
           ok: true,
