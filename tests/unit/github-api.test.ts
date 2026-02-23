@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { GitHubClient } from '../../ts-src/github/api.js';
+import { GitHubClient, parseGitHubUrl, checkRepoVisibility } from '../../ts-src/github/api.js';
 
 describe('GitHubClient', () => {
   const originalFetch = globalThis.fetch;
@@ -143,5 +143,109 @@ describe('GitHubClient', () => {
       const branch = await client.getDefaultBranch('user', 'repo');
       expect(branch).toBe('main');
     });
+  });
+});
+
+describe('parseGitHubUrl', () => {
+  it('should parse HTTPS URLs', () => {
+    expect(parseGitHubUrl('https://github.com/owner/repo')).toEqual({
+      owner: 'owner',
+      repo: 'repo',
+    });
+  });
+
+  it('should parse HTTPS URLs with .git suffix', () => {
+    expect(parseGitHubUrl('https://github.com/owner/repo.git')).toEqual({
+      owner: 'owner',
+      repo: 'repo',
+    });
+  });
+
+  it('should parse SSH URLs', () => {
+    expect(parseGitHubUrl('git@github.com:owner/repo.git')).toEqual({
+      owner: 'owner',
+      repo: 'repo',
+    });
+  });
+
+  it('should parse SSH URLs without .git suffix', () => {
+    expect(parseGitHubUrl('git@github.com:owner/repo')).toEqual({
+      owner: 'owner',
+      repo: 'repo',
+    });
+  });
+
+  it('should parse token-embedded HTTPS URLs', () => {
+    expect(parseGitHubUrl('https://ghp_abc123@github.com/owner/repo.git')).toEqual({
+      owner: 'owner',
+      repo: 'repo',
+    });
+  });
+
+  it('should return null for non-GitHub URLs', () => {
+    expect(parseGitHubUrl('https://gitlab.com/owner/repo.git')).toBeNull();
+    expect(parseGitHubUrl('https://bitbucket.org/owner/repo.git')).toBeNull();
+    expect(parseGitHubUrl('git@gitlab.com:owner/repo.git')).toBeNull();
+  });
+});
+
+describe('checkRepoVisibility', () => {
+  const originalFetch = globalThis.fetch;
+  let mockFetch: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    mockFetch = vi.fn();
+    globalThis.fetch = mockFetch;
+  });
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  it('should return public for a 200 response with private: false', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ private: false }),
+    });
+
+    const result = await checkRepoVisibility('owner', 'repo');
+    expect(result).toBe('public');
+  });
+
+  it('should return private for a 200 response with private: true', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ private: true }),
+    });
+
+    const result = await checkRepoVisibility('owner', 'repo', 'token');
+    expect(result).toBe('private');
+  });
+
+  it('should return private for a 404 without token', async () => {
+    mockFetch.mockResolvedValue({
+      ok: false,
+      status: 404,
+    });
+
+    const result = await checkRepoVisibility('owner', 'repo');
+    expect(result).toBe('private');
+  });
+
+  it('should return not_found for a 404 with token', async () => {
+    mockFetch.mockResolvedValue({
+      ok: false,
+      status: 404,
+    });
+
+    const result = await checkRepoVisibility('owner', 'repo', 'my-token');
+    expect(result).toBe('not_found');
+  });
+
+  it('should return error on network failure', async () => {
+    mockFetch.mockRejectedValue(new Error('Network error'));
+
+    const result = await checkRepoVisibility('owner', 'repo');
+    expect(result).toBe('error');
   });
 });

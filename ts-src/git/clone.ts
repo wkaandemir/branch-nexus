@@ -2,6 +2,8 @@ import simpleGit, { type SimpleGit } from 'simple-git';
 import { logger } from '../utils/logger.js';
 import { BranchNexusError, ExitCode } from '../types/errors.js';
 import { posixPath } from '../utils/validators.js';
+import { parseGitHubUrl, checkRepoVisibility } from '../github/api.js';
+import { loadConfig } from '../core/config.js';
 
 export async function materializeRemoteBranch(
   repoPath: string,
@@ -73,4 +75,68 @@ export async function cloneRepository(url: string, targetPath: string): Promise<
     const message = error instanceof Error ? error.message : String(error);
     throw new BranchNexusError(`Failed to clone repository: ${url}`, ExitCode.GIT_ERROR, message);
   }
+}
+
+export interface AccessCheckResult {
+  allowed: boolean;
+  isPrivate: boolean;
+}
+
+/**
+ * Checks whether a GitHub repository is accessible before cloning.
+ * For non-GitHub URLs, skips the check and allows.
+ * For private repos without a token, throws BranchNexusError.
+ */
+export async function checkRepositoryAccess(url: string): Promise<AccessCheckResult> {
+  const parsed = parseGitHubUrl(url);
+
+  if (parsed === null) {
+    // Non-GitHub URL — skip check
+    return { allowed: true, isPrivate: false };
+  }
+
+  const { owner, repo } = parsed;
+
+  // Unauthenticated check first
+  const visibility = await checkRepoVisibility(owner, repo);
+
+  if (visibility === 'public') {
+    return { allowed: true, isPrivate: false };
+  }
+
+  if (visibility === 'error') {
+    // Network error — fail open, let clone attempt proceed
+    logger.debug('GitHub API unreachable, skipping visibility check');
+    return { allowed: true, isPrivate: false };
+  }
+
+  // Repo appears private — check if we have a token
+  const config = loadConfig();
+  const token = config.githubToken;
+
+  if (token === '') {
+    throw new BranchNexusError(
+      `Bu repo private görünüyor: ${owner}/${repo}`,
+      ExitCode.GIT_ERROR,
+      "BRANCHNEXUS_GH_TOKEN ortam değişkenini tanımlayın veya 'branchnexus init' ile token girin."
+    );
+  }
+
+  // Re-check with authentication
+  const authVisibility = await checkRepoVisibility(owner, repo, token);
+
+  if (authVisibility === 'not_found') {
+    throw new BranchNexusError(
+      `Repo bulunamadı: ${owner}/${repo}`,
+      ExitCode.GIT_ERROR,
+      'Repo adını kontrol edin veya erişim izinlerinizi doğrulayın.'
+    );
+  }
+
+  if (authVisibility === 'error') {
+    logger.debug('GitHub API unreachable on auth check, proceeding with clone');
+    return { allowed: true, isPrivate: true };
+  }
+
+  return { allowed: true, isPrivate: authVisibility === 'private' };
 }

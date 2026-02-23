@@ -17,7 +17,7 @@ import { promptCleanup } from '../prompts/cleanup.js';
 import { Platform, detectPlatform, expandHomeDir, hasTmux } from '../runtime/platform.js';
 import { listDistributions } from '../runtime/wsl.js';
 import { logger, configureLogging } from '../utils/logger.js';
-import { cloneRepository } from '../git/clone.js';
+import { cloneRepository, checkRepositoryAccess } from '../git/clone.js';
 import { existsSync, mkdirSync } from 'node:fs';
 import { join, basename } from 'node:path';
 import simpleGit from 'simple-git';
@@ -293,6 +293,17 @@ export async function runCommand(options: RunOptions): Promise<void> {
         s.stop('Fetch başarısız, local ile devam');
       }
     } else {
+      // Check repository access before cloning
+      try {
+        const accessResult = await checkRepositoryAccess(url);
+        logger.debug(`Access check for ${url}: isPrivate=${accessResult.isPrivate}`);
+      } catch (error) {
+        if (error instanceof BranchNexusError) {
+          showError(error.message, error.hint);
+          return;
+        }
+      }
+
       s.start(`Repo klonlanıyor: ${rName}...`);
 
       let cloneUrl = url;
