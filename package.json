@@ -1,5 +1,5 @@
 {
-  "name": "branchnexus",
+  "name": "branch-nexus",
   "version": "1.0.0",
   "description": "Multi-branch workspace orchestrator for tmux",
   "type": "module",
