@@ -70,19 +70,19 @@ async function ensureTmuxInstalled(): Promise<void> {
   let installCmd: string;
 
   try {
-    await execa('bash', ['-lc', 'which apt-get']);
+    await execa('which', ['apt-get']);
     installCmd = 'apt-get update && apt-get install -y tmux';
   } catch {
     try {
-      await execa('bash', ['-lc', 'which dnf']);
+      await execa('which', ['dnf']);
       installCmd = 'dnf install -y tmux';
     } catch {
       try {
-        await execa('bash', ['-lc', 'which pacman']);
+        await execa('which', ['pacman']);
         installCmd = 'pacman -S --noconfirm tmux';
       } catch {
         try {
-          await execa('bash', ['-lc', 'which apk']);
+          await execa('which', ['apk']);
           installCmd = 'apk add tmux';
         } catch {
           throw new BranchNexusError(
@@ -95,36 +95,37 @@ async function ensureTmuxInstalled(): Promise<void> {
     }
   }
 
-  // Try sudo -n first
+  // Try sudo -n first (no password needed)
   try {
     console.log(chalk.dim(`Çalıştırılıyor: sudo ${installCmd}`));
-    await execa('sudo', ['-n', 'bash', '-lc', installCmd], { timeout: 180000 });
+    await execa('sudo', ['-n', 'bash', '-c', installCmd], { timeout: 180000 });
     console.log(chalk.green('✅ tmux kuruldu!\n'));
     return;
   } catch {
-    // Needs password
+    // Needs password — fall through to interactive install
   }
 
-  // Show command and wait
-  console.log(chalk.cyan('Başka bir terminalde bu komutu çalıştırın:\n'));
-  console.log(chalk.bold.white(`  sudo ${installCmd}\n`));
-  console.log(chalk.dim('tmux kurulumu bekleniyor...'));
+  // Run interactively so user can enter sudo password in this terminal
+  try {
+    console.log(chalk.dim('Sudo şifresi gerekebilir:\n'));
+    await execa('sudo', ['bash', '-c', installCmd], {
+      stdio: 'inherit',
+      timeout: 180000,
+    });
 
-  for (let i = 0; i < 60; i++) {
-    await new Promise((r) => setTimeout(r, 2000));
     const installed = await hasTmux();
     if (installed) {
-      console.log(chalk.green('\n✅ tmux algılandı!\n'));
+      console.log(chalk.green('\n✅ tmux kuruldu!\n'));
       return;
     }
-    process.stdout.write('.');
+  } catch {
+    // Install failed
   }
 
-  console.log();
   throw new BranchNexusError(
-    '2 dakika içinde tmux kurulumu algılanamadı.',
+    'tmux kurulumu başarısız oldu.',
     ExitCode.TMUX_ERROR,
-    'tmux kurduktan sonra tekrar deneyin.'
+    `Manuel kurulum: sudo ${installCmd}`
   );
 }
 
