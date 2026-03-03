@@ -1,4 +1,5 @@
 import simpleGit, { type SimpleGit } from 'simple-git';
+import { execa } from 'execa';
 import { logger } from '../utils/logger.js';
 import { BranchNexusError, ExitCode } from '../types/errors.js';
 import { posixPath } from '../utils/validators.js';
@@ -7,8 +8,7 @@ import { loadConfig } from '../core/config.js';
 
 export async function materializeRemoteBranch(
   repoPath: string,
-  remoteBranch: string,
-  _distribution?: string
+  remoteBranch: string
 ): Promise<string> {
   const normalizedRepo = posixPath(repoPath);
 
@@ -33,8 +33,10 @@ export async function materializeRemoteBranch(
       logger.debug(`Local branch already exists: ${localBranch}`);
       return localBranch;
     }
-  } catch {
-    // Continue with creation
+  } catch (error) {
+    logger.debug(
+      `Branch check failed, continuing with creation: ${error instanceof Error ? error.message : String(error)}`
+    );
   }
 
   try {
@@ -63,8 +65,33 @@ export async function fetchRemote(repoPath: string, remote = 'origin'): Promise<
   }
 }
 
-export async function cloneRepository(url: string, targetPath: string): Promise<void> {
-  logger.debug(`Cloning repository ${url} to ${targetPath}`);
+export async function cloneRepository(
+  url: string,
+  targetPath: string,
+  token?: string
+): Promise<void> {
+  logger.debug(`Cloning repository to ${targetPath}`);
+
+  if (token !== undefined && token !== '' && url.startsWith('https://')) {
+    // Use git credential environment variables to pass the token securely.
+    // This avoids embedding the token in the URL where it could leak into
+    // git logs, process lists, or shell history.
+    const urlObj = new URL(url);
+    const credentialHelper = `!f() { echo "username=x-access-token"; echo "password=${token}"; }; f`;
+
+    try {
+      await execa(
+        'git',
+        ['-c', `credential.${urlObj.origin}.helper=${credentialHelper}`, 'clone', url, targetPath],
+        { timeout: 120000, env: { ...process.env, GIT_TERMINAL_PROMPT: '0' } }
+      );
+      logger.debug(`Cloned repository to ${targetPath}`);
+      return;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new BranchNexusError(`Failed to clone repository: ${url}`, ExitCode.GIT_ERROR, message);
+    }
+  }
 
   const git: SimpleGit = simpleGit();
 

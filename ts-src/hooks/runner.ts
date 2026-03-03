@@ -2,6 +2,7 @@ import { execa } from 'execa';
 import { logger } from '../utils/logger.js';
 import { buildWslCommand } from '../runtime/wsl.js';
 import { Platform, detectPlatform } from '../runtime/platform.js';
+import { hasDistribution } from '../utils/validators.js';
 
 export interface HookExecution {
   command: string;
@@ -70,9 +71,7 @@ export class HookRunner {
         const isWindows = detectPlatform() === Platform.WINDOWS;
         const cmd = ['bash', '-lc', command];
         const finalCmd =
-          isWindows && distribution !== undefined && distribution !== ''
-            ? buildWslCommand(distribution, cmd)
-            : cmd;
+          isWindows && hasDistribution(distribution) ? buildWslCommand(distribution, cmd) : cmd;
 
         const result = await execa(finalCmd[0], finalCmd.slice(1), {
           timeout: this.timeoutSeconds * 1000,

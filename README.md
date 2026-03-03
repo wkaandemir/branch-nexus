@@ -1,7 +1,7 @@
 # BranchNexus
 
-[![npm version](https://img.shields.io/npm/v/branch-nexus.svg)](https://www.npmjs.com/package/branch-nexus)
-[![Node.js Version](https://img.shields.io/node/v/branch-nexus.svg)](https://nodejs.org)
+[![npm version](https://img.shields.io/npm/v/branchnexus.svg)](https://www.npmjs.com/package/branchnexus)
+[![Node.js Version](https://img.shields.io/node/v/branchnexus.svg)](https://nodejs.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **BranchNexus**, birden fazla Git branch'i aynı anda izole worktree'lerde açıp tmux panelleriyle yöneten bir CLI aracıdır.
@@ -25,33 +25,33 @@
 ## Kurulum
 
 ```bash
-npm install -g branch-nexus
+npm install -g branchnexus
 ```
 
 Veya npx ile doğrudan çalıştırın:
 
 ```bash
-npx branch-nexus init
+npx branchnexus init
 ```
 
 ## Hızlı Başlangıç
 
 ```bash
 # İlk kurulum sihirbazı
-branch-nexus init
+branchnexus init
 
 # İnteraktif oturum başlat
-branch-nexus
+branchnexus
 
 # Seçeneklerle çalıştır
-branch-nexus --layout grid --panes 4 --cleanup session
+branchnexus --layout grid --panes 4 --cleanup session
 ```
 
 ## Kullanım
 
 ### 1. Konfigürasyon Paneli
 
-`branch-nexus` komutunu çalıştırdığınızda interaktif konfigürasyon paneli açılır. Repository URL, layout tipi, pane sayısı, cleanup politikası ve renk temasını ayarlayabilirsiniz.
+`branchnexus` komutunu çalıştırdığınızda interaktif konfigürasyon paneli açılır. Repository URL, layout tipi, pane sayısı, cleanup politikası ve renk temasını ayarlayabilirsiniz.
 
 <p align="center">
   <img src="assets/panel.png" alt="BranchNexus configuration panel" width="700">
@@ -94,20 +94,20 @@ Onayladıktan sonra BranchNexus seçilen layout'a göre tmux oturumunu oluşturu
 ## CLI Komutları
 
 ```bash
-branch-nexus                          # İnteraktif oturum başlat
-branch-nexus init                     # İlk kurulum sihirbazı
-branch-nexus kill                     # Aktif session'ı sonlandır
-branch-nexus attach                   # Detach edilmiş session'a bağlan
-branch-nexus status                   # Durum bilgisi
-branch-nexus preset list              # Kayıtlı preset'leri listele
-branch-nexus preset save <isim>       # Mevcut ayarlardan preset kaydet
-branch-nexus preset load <isim>       # Preset yükle
-branch-nexus preset delete <isim>     # Preset sil
-branch-nexus config show              # Yapılandırmayı göster
-branch-nexus config set <key> <value> # Değer ayarla
-branch-nexus config reset             # Varsayılana sıfırla
-branch-nexus config export            # Config'i JSON olarak dışa aktar
-branch-nexus config import <dosya>    # Config içe aktar
+branchnexus                          # İnteraktif oturum başlat
+branchnexus init                     # İlk kurulum sihirbazı
+branchnexus kill                     # Aktif session'ı sonlandır
+branchnexus attach                   # Detach edilmiş session'a bağlan
+branchnexus status                   # Durum bilgisi
+branchnexus preset list              # Kayıtlı preset'leri listele
+branchnexus preset save <isim>       # Mevcut ayarlardan preset kaydet
+branchnexus preset load <isim>       # Preset yükle
+branchnexus preset delete <isim>     # Preset sil
+branchnexus config show              # Yapılandırmayı göster
+branchnexus config set <key> <value> # Değer ayarla
+branchnexus config reset             # Varsayılana sıfırla
+branchnexus config export            # Config'i JSON olarak dışa aktar
+branchnexus config import <dosya>    # Config içe aktar
 ```
 
 ## Seçenekler
@@ -125,7 +125,7 @@ branch-nexus config import <dosya>    # Config içe aktar
 
 ## Yapılandırma
 
-Config dosyası: `~/.config/branch-nexus/config.json`
+Config dosyası: `~/.config/branchnexus/config.json`
 
 ```json
 {

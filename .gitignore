@@ -1,38 +1,13 @@
-# Python bytecode and caches
-__pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-*.py,cover
-
-# Virtual environments
-.venv/
-.venv-linux/
-venv/
-env/
-
-# Tool caches
-.pytest_cache/
-.ruff_cache/
-.hypothesis/
-.mypy_cache/
-.tox/
-
-# Packaging/build outputs
-*.egg-info/
-.eggs/
-pip-wheel-metadata/
-build/
+# Build outputs
 dist/
+
+# Dependencies
+node_modules/
 
 # Coverage reports
 .coverage
 .coverage.*
 htmlcov/
-
-# Local scratch files
-/create-post/
-bulgular.txt
 
 # Local secrets / credentials
 .env
@@ -47,10 +22,6 @@ bulgular.txt
 *.sqlite
 *.log
 artifacts/
-docs/images/runtime-dashboard.png
-
-# Node
-node_modules/
 
 # OS/editor noise
 .DS_Store

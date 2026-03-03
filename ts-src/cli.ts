@@ -110,4 +110,8 @@ async function main(): Promise<void> {
   }
 }
 
-void main();
+main().catch((error: unknown) => {
+  const message = error instanceof Error ? error.message : String(error);
+  console.error(chalk.red(`Fatal error: ${message}`));
+  process.exit(ExitCode.RUNTIME_ERROR);
+});

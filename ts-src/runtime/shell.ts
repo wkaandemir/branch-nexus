@@ -38,11 +38,19 @@ export async function runCommand(
       stderr: result.stderr,
     };
   } catch (error) {
-    const execaError = error as ExecaError;
+    if (error instanceof Error && 'exitCode' in error) {
+      const execaError = error as ExecaError;
+      return {
+        exitCode: execaError.exitCode ?? 1,
+        stdout: execaError.stdout ?? '',
+        stderr: execaError.stderr ?? execaError.message,
+      };
+    }
+    const message = error instanceof Error ? error.message : String(error);
     return {
-      exitCode: execaError.exitCode ?? 1,
-      stdout: execaError.stdout ?? '',
-      stderr: execaError.stderr ?? execaError.message,
+      exitCode: 1,
+      stdout: '',
+      stderr: message,
     };
   }
 }

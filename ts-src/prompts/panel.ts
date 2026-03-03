@@ -12,6 +12,7 @@ import {
   COLOR_PALETTES,
 } from '../utils/theme.js';
 import { showGitHubBrowser } from './github-browser.js';
+import { visibleLength } from '../utils/ansi.js';
 
 export interface PanelResult {
   token: string | null;
@@ -65,19 +66,7 @@ interface KeypressKey {
   shift?: boolean;
 }
 
-/* eslint-disable no-control-regex */
-const ANSI_RE =
-  /[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[-a-zA-Z\d/#&.:=?%@~_]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-nq-uy=><~]))/g;
-/* eslint-enable no-control-regex */
 const CLR = '\x1B[K';
-
-function stripAnsi(str: string): string {
-  return str.replace(ANSI_RE, '');
-}
-
-function visibleLength(str: string): number {
-  return stripAnsi(str).length;
-}
 
 function padToWidth(content: string, width: number): string {
   const pad = Math.max(0, width - visibleLength(content));

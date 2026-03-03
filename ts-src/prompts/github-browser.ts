@@ -4,6 +4,7 @@ import { GitHubClient, type GitHubRepo } from '../github/api.js';
 import { loadConfig } from '../core/config.js';
 import { updateGithubRepoCache } from '../core/config.js';
 import { type ColorPalette, getPalette } from '../utils/theme.js';
+import { visibleLength } from '../utils/ansi.js';
 
 interface KeypressKey {
   name?: string;
@@ -12,18 +13,10 @@ interface KeypressKey {
   shift?: boolean;
 }
 
-/* eslint-disable no-control-regex */
-const ANSI_RE =
-  /[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[-a-zA-Z\d/#&.:=?%@~_]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-nq-uy=><~]))/g;
-/* eslint-enable no-control-regex */
 const CLR = '\x1B[K';
 
-function stripAnsi(str: string): number {
-  return str.replace(ANSI_RE, '').length;
-}
-
 function padToWidth(content: string, width: number): string {
-  const pad = Math.max(0, width - stripAnsi(content));
+  const pad = Math.max(0, width - visibleLength(content));
   return content + ' '.repeat(pad);
 }
 

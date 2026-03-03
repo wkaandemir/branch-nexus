@@ -3,6 +3,7 @@ import { buildWslCommand } from '../runtime/wsl.js';
 import { logger } from '../utils/logger.js';
 import { BranchNexusError, ExitCode } from '../types/errors.js';
 import { Platform, detectPlatform } from '../runtime/platform.js';
+import { hasDistribution } from '../utils/validators.js';
 
 const DEFAULT_SESSION_NAME = 'branchnexus';
 
@@ -17,14 +18,12 @@ export async function startSession(
 
   for (const command of commands) {
     const wrappedCommand =
-      isWindows && distribution !== undefined && distribution !== ''
-        ? buildWslCommand(distribution, command)
-        : command;
+      isWindows && hasDistribution(distribution) ? buildWslCommand(distribution, command) : command;
 
     logger.debug(`Executing tmux command: ${wrappedCommand.join(' ')}`);
 
     const result =
-      isWindows && distribution !== undefined && distribution !== ''
+      isWindows && hasDistribution(distribution)
         ? await runCommandViaWSL(distribution, command)
         : await runCommand(wrappedCommand);
 
@@ -40,7 +39,7 @@ export async function startSession(
         await killSession(sessionName, distribution);
 
         const retryResult =
-          isWindows && distribution !== undefined && distribution !== ''
+          isWindows && hasDistribution(distribution)
             ? await runCommandViaWSL(distribution, command)
             : await runCommand(wrappedCommand);
 
@@ -73,7 +72,7 @@ export async function killSession(sessionName: string, distribution?: string): P
   logger.debug(`Killing tmux session: ${sessionName}`);
 
   const result =
-    isWindows && distribution !== undefined && distribution !== ''
+    isWindows && hasDistribution(distribution)
       ? await runCommandViaWSL(distribution, command)
       : await runCommand(command);
 
@@ -87,7 +86,7 @@ export async function sessionExists(sessionName: string, distribution?: string):
   const command = ['tmux', 'has-session', '-t', sessionName];
 
   const result =
-    isWindows && distribution !== undefined && distribution !== ''
+    isWindows && hasDistribution(distribution)
       ? await runCommandViaWSL(distribution, command)
       : await runCommand(command);
 
@@ -102,7 +101,7 @@ export async function attachSession(sessionName: string, distribution?: string):
 
   // This will take over the terminal
   const result =
-    isWindows && distribution !== undefined && distribution !== ''
+    isWindows && hasDistribution(distribution)
       ? await runCommandViaWSL(distribution, command)
       : await runCommand(command);
 
@@ -125,7 +124,7 @@ export async function listSessions(distribution?: string): Promise<string[]> {
 
   try {
     const result =
-      isWindows && distribution !== undefined && distribution !== ''
+      isWindows && hasDistribution(distribution)
         ? await runCommandViaWSL(distribution, command)
         : await runCommand(command);
 

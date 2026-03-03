@@ -309,14 +309,8 @@ export async function runCommand(options: RunOptions): Promise<void> {
 
       s.start(`Repo klonlanıyor: ${rName}...`);
 
-      let cloneUrl = url;
-
-      if (token !== null && token !== '' && url.startsWith('https://')) {
-        cloneUrl = url.replace('https://', `https://${token}@`);
-      }
-
       try {
-        await cloneRepository(cloneUrl, localPath);
+        await cloneRepository(url, localPath, token ?? undefined);
         s.stop('Klonlandı: ' + localPath);
       } catch (error) {
         s.stop('Klonlama başarısız');
@@ -522,11 +516,11 @@ export async function runCommand(options: RunOptions): Promise<void> {
     // Post-detach cleanup handler
     if (cleanup === 'session' && result.worktrees.length > 0) {
       const worktreeManager = new WorktreeManager(worktreeBase, cleanup);
-      // Populate managed worktrees from result
+      // Populate managed worktrees from result (track only, no git commands)
       for (const wt of result.worktrees) {
-        await worktreeManager.addWorktree(
+        worktreeManager.trackExisting(
           { pane: wt.pane, repoPath: wt.repoPath, branch: wt.branch },
-          distribution || undefined
+          wt.path
         );
       }
 

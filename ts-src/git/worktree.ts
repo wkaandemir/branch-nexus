@@ -7,6 +7,7 @@ import {
   createManagedWorktree,
 } from '../types/index.js';
 import { runCommand, runCommandViaWSL } from '../runtime/shell.js';
+import { hasDistribution } from '../utils/validators.js';
 
 const SANITIZE_PATTERN = /[^A-Za-z0-9._-]+/g;
 
@@ -65,13 +66,15 @@ export class WorktreeManager {
     // Prune stale worktree references first
     const pruneCmd = ['git', '-C', repoPath, 'worktree', 'prune'];
     try {
-      if (distribution !== undefined && distribution !== '') {
+      if (hasDistribution(distribution)) {
         await runCommandViaWSL(distribution, pruneCmd);
       } else {
         await runCommand(pruneCmd);
       }
-    } catch {
-      // ignore prune errors
+    } catch (error) {
+      logger.debug(
+        `Prune failed (non-critical): ${error instanceof Error ? error.message : String(error)}`
+      );
     }
 
     const existingWorktrees = await this.getWorktreesForBranch(
@@ -101,16 +104,19 @@ export class WorktreeManager {
         this.commandPath(existingPath),
       ];
       try {
-        if (distribution !== undefined && distribution !== '') {
+        if (hasDistribution(distribution)) {
           await runCommandViaWSL(distribution, removeCmd);
         } else {
           await runCommand(removeCmd);
         }
         logger.debug(`Removed stale worktree: ${existingPath}`);
-      } catch {
+      } catch (removeError) {
+        logger.debug(
+          `Remove failed, trying prune: ${removeError instanceof Error ? removeError.message : String(removeError)}`
+        );
         // If remove fails, try prune and continue
         const pruneCmd = ['git', '-C', repoPath, 'worktree', 'prune'];
-        if (distribution !== undefined && distribution !== '') {
+        if (hasDistribution(distribution)) {
           await runCommandViaWSL(distribution, pruneCmd);
         } else {
           await runCommand(pruneCmd);
@@ -122,7 +128,7 @@ export class WorktreeManager {
     const cmd = ['git', '-C', repoPath, 'worktree', 'add', targetPath, assignment.branch];
 
     try {
-      if (distribution !== undefined && distribution !== '') {
+      if (hasDistribution(distribution)) {
         await runCommandViaWSL(distribution, cmd);
       } else {
         await runCommand(cmd);
@@ -139,19 +145,6 @@ export class WorktreeManager {
         ExitCode.GIT_ERROR,
         message
       );
-    }
-  }
-
-  private async getCurrentBranch(repoPath: string, distribution?: string): Promise<string> {
-    const cmd = ['git', '-C', repoPath, 'branch', '--show-current'];
-    try {
-      const result =
-        distribution !== undefined && distribution !== ''
-          ? await runCommandViaWSL(distribution, cmd)
-          : await runCommand(cmd);
-      return result.stdout.trim();
-    } catch {
-      return '';
     }
   }
 
@@ -173,10 +166,9 @@ export class WorktreeManager {
     const cmd = ['git', '-C', this.commandPath(worktree.path), 'status', '--porcelain'];
 
     try {
-      const result =
-        distribution !== undefined && distribution !== ''
-          ? await runCommandViaWSL(distribution, cmd)
-          : await runCommand(cmd);
+      const result = hasDistribution(distribution)
+        ? await runCommandViaWSL(distribution, cmd)
+        : await runCommand(cmd);
 
       const dirty = result.stdout.trim().length > 0;
       logger.debug(`Dirty check path=${worktree.path} dirty=${dirty}`);
@@ -220,7 +212,7 @@ export class WorktreeManager {
       cmd.push(worktreePath);
 
       try {
-        if (options?.distribution !== undefined && options.distribution !== '') {
+        if (hasDistribution(options?.distribution)) {
           await runCommandViaWSL(options.distribution, cmd);
         } else {
           await runCommand(cmd);
@@ -238,6 +230,15 @@ export class WorktreeManager {
     }
 
     return removed;
+  }
+
+  trackExisting(assignment: WorktreeAssignment, path: string): ManagedWorktree {
+    logger.debug(
+      `Tracking existing worktree pane=${assignment.pane} branch=${assignment.branch} path=${path}`
+    );
+    const managed = createManagedWorktree(assignment, path);
+    this.managed.push(managed);
+    return managed;
   }
 
   getManaged(): ManagedWorktree[] {
@@ -262,10 +263,9 @@ export class WorktreeManager {
     const cmd = ['git', '-C', this.commandPath(repoPath), 'worktree', 'list', '--porcelain'];
 
     try {
-      const result =
-        distribution !== undefined && distribution !== ''
-          ? await runCommandViaWSL(distribution, cmd)
-          : await runCommand(cmd);
+      const result = hasDistribution(distribution)
+        ? await runCommandViaWSL(distribution, cmd)
+        : await runCommand(cmd);
 
       const worktrees: string[] = [];
       let currentWorktree = '';
@@ -286,7 +286,10 @@ export class WorktreeManager {
       }
 
       return worktrees;
-    } catch {
+    } catch (error) {
+      logger.debug(
+        `Failed to list worktrees for branch ${branch}: ${error instanceof Error ? error.message : String(error)}`
+      );
       return [];
     }
   }

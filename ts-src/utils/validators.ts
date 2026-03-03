@@ -52,6 +52,10 @@ export function isValidTerminalCount(value: number): boolean {
   return Number.isInteger(value) && value >= 2 && value <= 16;
 }
 
+export function hasDistribution(dist?: string): dist is string {
+  return dist !== undefined && dist !== '';
+}
+
 const SANITIZE_PATTERN = /[^A-Za-z0-9._-]+/g;
 
 export function sanitizePathSegment(value: string): string {
