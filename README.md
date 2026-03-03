@@ -1,7 +1,7 @@
 # BranchNexus
 
-[![npm version](https://img.shields.io/npm/v/branchnexus.svg)](https://www.npmjs.com/package/branchnexus)
-[![Node.js Version](https://img.shields.io/node/v/branchnexus.svg)](https://nodejs.org)
+[![npm version](https://img.shields.io/npm/v/@wkaandemir/branchnexus.svg)](https://www.npmjs.com/package/@wkaandemir/branchnexus)
+[![Node.js Version](https://img.shields.io/node/v/@wkaandemir/branchnexus.svg)](https://nodejs.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **BranchNexus**, birden fazla Git branch'i aynı anda izole worktree'lerde açıp tmux panelleriyle yöneten bir CLI aracıdır.
@@ -25,13 +25,13 @@
 ## Kurulum
 
 ```bash
-npm install -g branchnexus
+npm install -g @wkaandemir/branchnexus
 ```
 
 Veya npx ile doğrudan çalıştırın:
 
 ```bash
-npx branchnexus init
+npx @wkaandemir/branchnexus init
 ```
 
 ## Hızlı Başlangıç

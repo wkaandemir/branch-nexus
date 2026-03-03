@@ -1,6 +1,6 @@
 {
-  "name": "branchnexus",
-  "version": "1.4.0",
+  "name": "@wkaandemir/branchnexus",
+  "version": "1.4.1",
   "description": "Multi-branch workspace orchestrator for tmux",
   "type": "module",
   "bin": {
