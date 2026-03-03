@@ -22,7 +22,7 @@ export function configCommand(action?: string, key?: string, value?: string): vo
 
     case 'set':
       if (key === undefined || key === '' || value === undefined) {
-        console.error(chalk.red('Usage: branchnexus config set <key> <value>'));
+        console.error(chalk.red('Usage: branch-nexus config set <key> <value>'));
         console.log(chalk.dim('\nAvailable keys:'));
         console.log('  defaultRoot, defaultLayout, defaultPanes, cleanupPolicy');
         console.log('  wslDistribution, tmuxAutoInstall, sessionRestoreEnabled');
@@ -53,7 +53,7 @@ export function configCommand(action?: string, key?: string, value?: string): vo
 
     case 'import': {
       if (key === undefined || key === '') {
-        console.error(chalk.red('Usage: branchnexus config import <file-path>'));
+        console.error(chalk.red('Usage: branch-nexus config import <file-path>'));
         process.exit(1);
       }
 
@@ -73,11 +73,11 @@ export function configCommand(action?: string, key?: string, value?: string): vo
 
     default:
       console.log(chalk.bold('\n📋 Configuration Commands\n'));
-      console.log('  branchnexus config show                Show current configuration');
-      console.log('  branchnexus config set <key> <value>    Set a configuration value');
-      console.log('  branchnexus config reset                Reset to defaults');
-      console.log('  branchnexus config export               Export config as JSON');
-      console.log('  branchnexus config import <file>        Import config from JSON file');
+      console.log('  branch-nexus config show                Show current configuration');
+      console.log('  branch-nexus config set <key> <value>    Set a configuration value');
+      console.log('  branch-nexus config reset                Reset to defaults');
+      console.log('  branch-nexus config export               Export config as JSON');
+      console.log('  branch-nexus config import <file>        Import config from JSON file');
       console.log();
   }
 }

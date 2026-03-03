@@ -19,7 +19,7 @@ export async function statusCommand(): Promise<void> {
   // Active tmux sessions
   console.log(chalk.bold("tmux Session'lar:"));
   const sessions = await listSessions(distribution);
-  const bnSessions = sessions.filter((s) => s.startsWith('branchnexus'));
+  const bnSessions = sessions.filter((s) => s.startsWith('branch-nexus'));
 
   if (bnSessions.length === 0) {
     console.log(chalk.dim('  Aktif session yok'));

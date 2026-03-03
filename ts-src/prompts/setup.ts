@@ -117,7 +117,7 @@ export async function promptSetup(): Promise<Partial<AppConfig>> {
       const installed = await installTmux();
       if (!installed) {
         console.log(chalk.red('\n❌ tmux installation failed or was skipped.'));
-        console.log(chalk.dim('Please install tmux manually and run branchnexus init again.\n'));
+        console.log(chalk.dim('Please install tmux manually and run branch-nexus init again.\n'));
         process.exit(1);
       }
     } else {
@@ -258,6 +258,6 @@ export async function initCommand(): Promise<void> {
   saveConfig(merged);
 
   console.log(chalk.green('\n✅ Configuration saved!\n'));
-  console.log(chalk.dim(`Config location: ${process.env.HOME}/.config/branchnexus/config.json`));
-  console.log(chalk.dim('\nRun `branchnexus` to start a session.\n'));
+  console.log(chalk.dim(`Config location: ${process.env.HOME}/.config/branch-nexus/config.json`));
+  console.log(chalk.dim('\nRun `branch-nexus` to start a session.\n'));
 }

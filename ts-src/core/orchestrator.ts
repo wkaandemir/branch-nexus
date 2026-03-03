@@ -41,7 +41,7 @@ export async function orchestrate(request: OrchestrationRequest): Promise<Orches
   const sessionName =
     request.sessionName !== undefined && request.sessionName !== ''
       ? request.sessionName
-      : 'branchnexus';
+      : 'branch-nexus';
 
   logger.debug(
     `Starting orchestration distribution=${request.distribution} layout=${request.layout} panes=${request.assignments.length}`

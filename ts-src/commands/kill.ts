@@ -8,7 +8,7 @@ import { expandHomeDir } from '../runtime/platform.js';
 import { runCommand } from '../runtime/shell.js';
 import { logger } from '../utils/logger.js';
 
-const SESSION_PREFIX = 'branchnexus';
+const SESSION_PREFIX = 'branch-nexus';
 
 async function cleanupWorktreeDir(basePath: string, distribution?: string): Promise<number> {
   if (!existsSync(basePath)) {

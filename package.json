@@ -4,7 +4,7 @@
   "description": "Multi-branch workspace orchestrator for tmux",
   "type": "module",
   "bin": {
-    "branchnexus": "dist/cli.js"
+    "branch-nexus": "dist/cli.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

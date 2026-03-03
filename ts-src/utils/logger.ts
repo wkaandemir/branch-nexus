@@ -14,8 +14,8 @@ const LOG_LEVELS: Record<LogLevel, number> = {
 let currentLevel: LogLevel = 'info';
 let logFilePath: string | null = null;
 
-const DEFAULT_LOG_DIR = '.config/branchnexus/logs';
-const DEFAULT_LOG_FILE = 'branchnexus.log';
+const DEFAULT_LOG_DIR = '.config/branch-nexus/logs';
+const DEFAULT_LOG_FILE = 'branch-nexus.log';
 
 export function defaultLogPath(): string {
   const logDir = resolve(homedir(), DEFAULT_LOG_DIR);

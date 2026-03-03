@@ -145,7 +145,7 @@ export async function checkRepositoryAccess(url: string): Promise<AccessCheckRes
     throw new BranchNexusError(
       `Bu repo private görünüyor: ${owner}/${repo}`,
       ExitCode.GIT_ERROR,
-      "BRANCHNEXUS_GH_TOKEN ortam değişkenini tanımlayın veya 'branchnexus init' ile token girin."
+      "BRANCHNEXUS_GH_TOKEN ortam değişkenini tanımlayın veya 'branch-nexus init' ile token girin."
     );
   }
 

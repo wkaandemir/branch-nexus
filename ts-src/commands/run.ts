@@ -146,7 +146,7 @@ export async function runCommand(options: RunOptions): Promise<void> {
   await ensureTmuxInstalled();
 
   const config = loadConfig();
-  const sessionName = options.session ?? 'branchnexus';
+  const sessionName = options.session ?? 'branch-nexus';
 
   // Session restore check (skip if --fresh)
   if (

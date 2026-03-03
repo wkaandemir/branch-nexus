@@ -13,7 +13,7 @@ import { BranchNexusError, ExitCode } from '../types/errors.js';
 const GITHUB_TOKEN_ENV = 'BRANCHNEXUS_GH_TOKEN';
 
 const configStore = new Conf<AppConfig>({
-  projectName: 'branchnexus',
+  projectName: 'branch-nexus',
   configName: 'config',
   defaults: DEFAULT_CONFIG,
   schema: {
@@ -171,7 +171,7 @@ export function setConfigValue(key: string, value: string): AppConfig {
       throw new BranchNexusError(
         `Unknown config key: ${key}`,
         ExitCode.CONFIG_ERROR,
-        'Use "branchnexus config show" to see available keys.'
+        'Use "branch-nexus config show" to see available keys.'
       );
   }
 

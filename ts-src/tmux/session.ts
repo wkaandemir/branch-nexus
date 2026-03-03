@@ -5,7 +5,7 @@ import { BranchNexusError, ExitCode } from '../types/errors.js';
 import { Platform, detectPlatform } from '../runtime/platform.js';
 import { hasDistribution } from '../utils/validators.js';
 
-const DEFAULT_SESSION_NAME = 'branchnexus';
+const DEFAULT_SESSION_NAME = 'branch-nexus';
 
 export async function startSession(
   sessionName: string,

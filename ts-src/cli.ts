@@ -17,7 +17,7 @@ import { configureLogging, defaultLogPath, logger } from './utils/logger.js';
 const program = new Command();
 
 program
-  .name('branchnexus')
+  .name('branch-nexus')
   .description('Multi-branch workspace orchestrator for tmux')
   .version('1.0.0');
 

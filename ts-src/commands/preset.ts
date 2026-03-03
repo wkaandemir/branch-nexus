@@ -18,7 +18,7 @@ export function presetCommand(action?: string, name?: string, extra?: string): v
 
       if (entries.length === 0) {
         console.log(chalk.yellow('\nKayıtlı preset bulunamadı.\n'));
-        console.log(chalk.dim('Yeni preset: branchnexus preset save <isim>'));
+        console.log(chalk.dim('Yeni preset: branch-nexus preset save <isim>'));
         console.log();
         return;
       }
@@ -38,12 +38,12 @@ export function presetCommand(action?: string, name?: string, extra?: string): v
 
     case 'save': {
       if (name === undefined || name === '') {
-        console.error(chalk.red('Kullanım: branchnexus preset save <isim>'));
+        console.error(chalk.red('Kullanım: branch-nexus preset save <isim>'));
         process.exit(1);
       }
 
       if (extra !== undefined && extra !== '') {
-        // Parse inline: branchnexus preset save myPreset '{"layout":"grid","panes":4,"cleanup":"session"}'
+        // Parse inline: branch-nexus preset save myPreset '{"layout":"grid","panes":4,"cleanup":"session"}'
         try {
           const parsed = JSON.parse(extra) as PresetConfig;
           savePreset(name, parsed);
@@ -69,7 +69,7 @@ export function presetCommand(action?: string, name?: string, extra?: string): v
 
     case 'load': {
       if (name === undefined || name === '') {
-        console.error(chalk.red('Kullanım: branchnexus preset load <isim>'));
+        console.error(chalk.red('Kullanım: branch-nexus preset load <isim>'));
         process.exit(1);
       }
 
@@ -92,7 +92,7 @@ export function presetCommand(action?: string, name?: string, extra?: string): v
 
     case 'delete': {
       if (name === undefined || name === '') {
-        console.error(chalk.red('Kullanım: branchnexus preset delete <isim>'));
+        console.error(chalk.red('Kullanım: branch-nexus preset delete <isim>'));
         process.exit(1);
       }
 
@@ -108,7 +108,7 @@ export function presetCommand(action?: string, name?: string, extra?: string): v
 
     case 'rename': {
       if (name === undefined || name === '' || extra === undefined || extra === '') {
-        console.error(chalk.red('Kullanım: branchnexus preset rename <eski-isim> <yeni-isim>'));
+        console.error(chalk.red('Kullanım: branch-nexus preset rename <eski-isim> <yeni-isim>'));
         process.exit(1);
       }
 
@@ -127,11 +127,11 @@ export function presetCommand(action?: string, name?: string, extra?: string): v
 
     default:
       console.log(chalk.bold('\n📋 Preset Komutları\n'));
-      console.log("  branchnexus preset list              Kayıtlı preset'leri listele");
-      console.log('  branchnexus preset save <isim>       Mevcut ayarlardan preset kaydet');
-      console.log('  branchnexus preset load <isim>       Preset yükle');
-      console.log('  branchnexus preset delete <isim>     Preset sil');
-      console.log('  branchnexus preset rename <eski> <yeni>  Preset yeniden adlandır');
+      console.log("  branch-nexus preset list              Kayıtlı preset'leri listele");
+      console.log('  branch-nexus preset save <isim>       Mevcut ayarlardan preset kaydet');
+      console.log('  branch-nexus preset load <isim>       Preset yükle');
+      console.log('  branch-nexus preset delete <isim>     Preset sil');
+      console.log('  branch-nexus preset rename <eski> <yeni>  Preset yeniden adlandır');
       console.log();
   }
 }

@@ -4,7 +4,7 @@ import { listSessions } from '../tmux/session.js';
 import { loadConfig } from '../core/config.js';
 import { execa } from 'execa';
 
-const SESSION_PREFIX = 'branchnexus';
+const SESSION_PREFIX = 'branch-nexus';
 
 export async function attachCommand(sessionName?: string): Promise<void> {
   const config = loadConfig();
@@ -15,7 +15,7 @@ export async function attachCommand(sessionName?: string): Promise<void> {
 
   if (bnSessions.length === 0) {
     console.log(chalk.yellow('\nAktif BranchNexus session bulunamadı.\n'));
-    console.log(chalk.dim('Yeni session başlatmak için: branchnexus'));
+    console.log(chalk.dim('Yeni session başlatmak için: branch-nexus'));
     console.log();
     return;
   }
@@ -60,7 +60,7 @@ export async function attachCommand(sessionName?: string): Promise<void> {
     // User detached or session ended — normal
     console.log();
     console.log(chalk.dim('tmux session devam ediyor. Tekrar bağlanmak için:'));
-    console.log(chalk.cyan(`  branchnexus attach ${target}`));
+    console.log(chalk.cyan(`  branch-nexus attach ${target}`));
     console.log();
   }
 }
