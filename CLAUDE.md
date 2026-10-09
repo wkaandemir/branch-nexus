@@ -53,3 +53,9 @@ The CLI entry point is `ts-src/cli.ts` (Commander.js). The public API is exporte
 - Prettier: single quotes, semicolons, 100 char width, 2-space indent, trailing commas (ES5)
 - ESLint: strict TypeScript rules — explicit return types required, no implicit any, no floating promises, strict boolean expressions
 - `console` usage is allowed (CLI tool)
+
+## Git and PRs
+
+- Only PRs go to `main`. Do each task on a short-lived branch cut from `main`. No direct push, force push, or GitHub auto-merge.
+- When CI is fully green, the agent merges its own PR: `gh pr merge --squash --delete-branch` (use `--merge` if squash is not accepted). Never merge on red or pending CI.
+- After merge, clean up locally: `git worktree remove` the task's worktree and `git branch -d` the local branch. Never touch worktrees with uncommitted changes or owned by another session.
